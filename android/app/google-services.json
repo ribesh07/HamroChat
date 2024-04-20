@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "930273473052",
+    "project_id": "hamrochat-9a201",
+    "storage_bucket": "hamrochat-9a201.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:930273473052:android:ef5f2df6ba79e6c12065d9",
+        "android_client_info": {
+          "package_name": "com.example.hamrochat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3n_vBH203EX7I3ot0Ic3q67aW9Lzq0AE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
