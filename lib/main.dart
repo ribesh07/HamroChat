@@ -50,6 +50,9 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             // Text(widget.title),
             Text('Welcome to ${widget.title}'),
+            ElevatedButton(onPressed: (){
+              
+            }, child: const Text('Send'))
           ],
         ),
       ),
