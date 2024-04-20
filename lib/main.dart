@@ -1,23 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hamrochat/firebase/firebaseconfig.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  if(kIsWeb){
-  await Firebase.initializeApp(
-    options:const FirebaseOptions(apiKey: Firebaseonfigg_data.apikey,
-      authDomain: Firebaseonfigg_data.authDomain,
-      projectId: Firebaseonfigg_data.projectId,
-      storageBucket: Firebaseonfigg_data.storageBucket,
-      messagingSenderId: Firebaseonfigg_data.messagingSenderId,
-      appId: Firebaseonfigg_data.appId,measurementId: Firebaseonfigg_data.measurementId),
-    );
-  }else{
-    await Firebase.initializeApp();
-  }
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
