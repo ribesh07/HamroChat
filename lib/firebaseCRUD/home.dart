@@ -1,7 +1,7 @@
 // import 'dart:math';
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hamrochat/firebase/firebaseservices.dart';
+import 'package:hamrochat/firebaseCRUD/firebaseservices.dart';
 // import 'package:hamrochat/readdata.dart';
 
 class Homepage extends StatefulWidget {

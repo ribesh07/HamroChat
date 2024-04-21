@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hamrochat/home.dart';
-import 'package:hamrochat/readdata.dart';
+import 'package:hamrochat/firebaseCRUD/home.dart';
+import 'package:hamrochat/firebaseCRUD/readdata.dart';
 import 'firebase_options.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 
@@ -27,9 +27,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: 
-      readData(), 
+      // readData(), 
       // Homepage(),
-      // const MyHomePage(title: 'HamroChat'),
+      const MyHomePage(title: 'HamroChat'),
     );
   }
 }
@@ -51,16 +51,21 @@ class _MyHomePageState extends State<MyHomePage> {
         title:
             Container(alignment: Alignment.center, child: Text(widget.title)),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Text(widget.title),
-            Text('Welcome to ${widget.title}'),
-            ElevatedButton(onPressed: (){
-              
-            }, child: const Text('Send'))
-          ],
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        alignment: Alignment.center,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // Text(widget.title),
+              Text('Welcome to ${widget.title}'),
+              ElevatedButton(onPressed: (){
+                
+              }, child: const Text('Send'))
+            ],
+          ),
         ),
       ),
     );
