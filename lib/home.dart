@@ -49,7 +49,7 @@ class _HomepageState extends State<Homepage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if(widget.s =='update')
+              if(widget.s != null)
                 Text(widget.s.toString().toUpperCase(),style:const TextStyle(fontSize: 15,)),
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20),

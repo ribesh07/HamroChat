@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: 
-      // readData(), 
-      Homepage(),
+      readData(), 
+      // Homepage(),
       // const MyHomePage(title: 'HamroChat'),
     );
   }
