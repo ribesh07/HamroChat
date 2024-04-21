@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hamrochat/firebaseCRUD/firebaseservices.dart';
 // import 'package:hamrochat/readdata.dart';
 
+// ignore: must_be_immutable
 class Homepage extends StatefulWidget {
   String? id;
   String? s;
@@ -22,6 +23,7 @@ class _HomepageState extends State<Homepage> {
 
   final Firebaseservice _firebaseservice = Firebaseservice();
   // @override
+  // ignore: non_constant_identifier_names
   void Dispose() {
     textController.dispose();
     textController1.dispose();

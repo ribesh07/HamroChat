@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:hamrochat/firebaseCRUD/firebaseservices.dart';
 import 'package:hamrochat/firebaseCRUD/home.dart';
 
+// ignore: camel_case_types
 class readData extends StatefulWidget {
-  readData({super.key});
+  const readData({super.key});
 
   @override
   State<readData> createState() => _readDataState();
 }
 
+// ignore: camel_case_types
 class _readDataState extends State<readData> {
   final textController = TextEditingController();
 
@@ -20,6 +22,7 @@ class _readDataState extends State<readData> {
   bool isdeleted = false;
 
   // @override
+  // ignore: non_constant_identifier_names
   void Dispose() {
     textController.dispose();
     textController1.dispose();
