@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'HamroChat',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF03061F)),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF8A55DF)),
         useMaterial3: true,
       ),
       home: 
