@@ -33,7 +33,7 @@ class _Login_pageState extends State<Login_page> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:Container(alignment: Alignment.center,child:Text('Login Page',style: textStyleappbar,)),
+        title:Container(alignment: Alignment.center,child:const Text('Login Page',style: textStyleappbar,)),
         backgroundColor: appbarcolor,
       ),
     

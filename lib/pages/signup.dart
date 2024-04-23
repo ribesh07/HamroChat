@@ -1,22 +1,31 @@
 // ignore_for_file: camel_case_types
 
+import 'dart:io';
+// import 'dart:js';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hamrochat/color-collection.dart';
+import 'package:hamrochat/setups/shortcuts.dart';
 
 class Signup_page extends StatefulWidget {
   const Signup_page({super.key});
 
-  
   @override
   State<Signup_page> createState() => _Signup_pageState();
 }
 
 class _Signup_pageState extends State<Signup_page> {
-
   final emailcontroller = TextEditingController();
   final passcontroller = TextEditingController();
   final cpasscontroller = TextEditingController();
+  File? image;
+  void selectImage() async {
+    image = await PickImageFromGallery(context);
+    setState(() {
+    });
+  }
 
   @override
   void dispose() {
@@ -30,10 +39,14 @@ class _Signup_pageState extends State<Signup_page> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:Container(alignment: Alignment.center,child:const Text('SignUp Page',style: textStyleappbar,)),
+        title: Container(
+            alignment: Alignment.center,
+            child: const Text(
+              'SignUp Page',
+              style: textStyleappbar,
+            )),
         backgroundColor: appbarcolor,
       ),
-    
       body: SingleChildScrollView(
         child: SafeArea(
           child: Container(
@@ -41,38 +54,82 @@ class _Signup_pageState extends State<Signup_page> {
             height: MediaQuery.of(context).size.height,
             alignment: Alignment.center,
             color: Colors.blueGrey[100],
-          
             child: Column(
               children: [
-                const SizedBox(height: 40,),
-                const CircleAvatar(
-                  backgroundColor: appbarcolor,
-                 radius: 46,
-                 child: Icon(Icons.person,size: 50,),
+                const SizedBox(
+                  height: 40,
                 ),
-                const SizedBox(height: 26,),
-                const Text('Your Creditinals',
-                  style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),
-                  ),
-                const SizedBox(height: 20,),
+                Stack(
+                  children: [
+                    image != null
+                        ? CircleAvatar(
+                            backgroundImage: FileImage(image!),
+                            radius: 46,
+                            // child: Icon(
+                            //   Icons.person,
+                            //   size: 50,
+                            // )
+                          )
+                        : CircleAvatar(
+                            backgroundColor: appbarcolor,
+                            radius: 46,
+                            child: GestureDetector(
+                              onTap: selectImage,
+                              child:const Icon(
+                                Icons.person,
+                                size: 50,
+                              ),
+                            ),
+                          ),
+                    if (image==null)
+                     Positioned(
+                      bottom: -6,
+                      right: -10,
+                      child: IconButton(
+                        onPressed: () {
+                          selectImage();
+                        },
+                        icon: const Icon(
+                          Icons.add_a_photo_outlined,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 26,
+                ),
+                image == null?
+                const Text(
+                  'Add Image',
+                  style: textStyle,
+                )
+                :const Text(
+                  'Your Image',
+                  style: textStyle,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 8,bottom: 10,left: 18,right: 18),
+                  padding: const EdgeInsets.only(
+                      top: 8, bottom: 10, left: 18, right: 18),
                   child: TextField(
                     controller: emailcontroller,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
                     ),
-                  
                   ),
                 ),
                 // const SizedBox(height: 20,),
                 Padding(
-                  padding: const EdgeInsets.only(top: 5,bottom: 10,left: 18,right: 18),
+                  padding: const EdgeInsets.only(
+                      top: 5, bottom: 10, left: 18, right: 18),
                   child: TextField(
                     controller: passcontroller,
                     obscureText: true,
-                  
                     decoration: const InputDecoration(
                       labelText: 'Password',
                       border: OutlineInputBorder(),
@@ -80,39 +137,45 @@ class _Signup_pageState extends State<Signup_page> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 5,bottom: 10,left: 18,right: 18),
+                  padding: const EdgeInsets.only(
+                      top: 5, bottom: 10, left: 18, right: 18),
                   child: TextField(
                     controller: cpasscontroller,
                     obscureText: true,
-                  
                     decoration: const InputDecoration(
                       labelText: 'Confirm Password',
                       border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-              //    const SizedBox(height: 10,),
-              //   const Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   crossAxisAlignment: CrossAxisAlignment.center,
-              //   children: [
-              //     Text('Don\'t have an account ??',style: textStyle,),
-              //     Text('  SignUp',style:TextStyle(color: Color.fromARGB(255, 154, 60, 227),fontWeight: FontWeight.w600,fontSize: 20),),
-              //   ],
-              // ),
+                //    const SizedBox(height: 10,),
+                //   const Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   crossAxisAlignment: CrossAxisAlignment.center,
+                //   children: [
+                //     Text('Don\'t have an account ??',style: textStyle,),
+                //     Text('  SignUp',style:TextStyle(color: Color.fromARGB(255, 154, 60, 227),fontWeight: FontWeight.w600,fontSize: 20),),
+                //   ],
+                // ),
                 Padding(
-                padding: const EdgeInsets.only(top: 30),
-                child: ElevatedButton(
-                  onPressed: () {
-                  debugPrint(emailcontroller.text);
-                  debugPrint(passcontroller.text);
-                  debugPrint(cpasscontroller.text);
-                  
-                }, child: const Text('Submit',style: textStyle,),
+                  padding: const EdgeInsets.only(top: 30),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      debugPrint(emailcontroller.text);
+                      debugPrint(passcontroller.text);
+                      debugPrint(cpasscontroller.text);
+                      setState(() {
+                        if (passcontroller.text == cpasscontroller.text) {
+                          debugPrint('password matched');
+                        }
+                      });
+                    },
+                    child: const Text(
+                      'Submit',
+                      style: textStyle,
+                    ),
+                  ),
                 ),
-              ),
-              
-              
               ],
             ),
           ),
