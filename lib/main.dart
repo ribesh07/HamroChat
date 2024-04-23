@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hamrochat/color-collection.dart';
 import 'package:hamrochat/firebaseCRUD/home.dart';
 import 'package:hamrochat/firebaseCRUD/readdata.dart';
 import 'package:hamrochat/routes.dart';
@@ -45,7 +46,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   void pathtoLoginpage(BuildContext context) {
-    Navigator.of(context).pushNamed('/login');
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
@@ -73,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // begin: Alignment.topCenter,
             // end: Alignment.bottomCenter,
             colors: [
-              Color.fromARGB(255, 249, 250, 251),
+              Color(0xFFF9FAFB),
               Color.fromARGB(255, 244, 246, 249),
               // Color(0xffe6e9f0),Color(0xffe6e9f0),
             ],
@@ -92,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.all(12.0),
                 child: ElevatedButton(onPressed: () {
                   pathtoLoginpage(context);
-                }, child: Text('Continue >>',style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),
+                }, child: Text('Continue >>',style: textStyle,
                 ),
                 ),
               ),
