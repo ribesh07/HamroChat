@@ -166,6 +166,7 @@ com/google/android/gms/auth/api/phone/SmsCodeAutofillClient$PermissionState.clas
 com/google/android/gms/common/AccountPicker.class
 com/google/android/gms/common/BlockingServiceConnection.class
 com/google/android/gms/common/GmsSignatureVerifier.class
+com/google/android/gms/common/GoogleApiAvailability.class
 com/google/android/gms/common/GoogleApiAvailabilityLight.class
 com/google/android/gms/common/GooglePlayServicesUtilLight.class
 com/google/android/gms/common/GoogleSignatureVerifier.class
@@ -183,6 +184,9 @@ com/google/android/gms/common/config/GservicesValue.class
 com/google/android/gms/common/internal/GmsClientSupervisor.class
 com/google/android/gms/common/internal/HideFirstParty.class
 com/google/android/gms/common/internal/ShowFirstParty.class
+com/google/android/gms/common/internal/TelemetryLoggingClient.class
+com/google/android/gms/common/moduleinstall/ModuleAvailabilityResponse$AvailabilityStatus.class
+com/google/android/gms/common/moduleinstall/ModuleInstallStatusUpdate$InstallState.class
 com/google/android/gms/common/sqlite/CursorWrapper.class
 com/google/android/gms/common/stats/ConnectionTracker.class
 com/google/android/gms/common/util/Base64Utils.class
@@ -193,6 +197,8 @@ com/google/android/gms/common/util/IOUtils.class
 com/google/android/gms/common/wrappers/PackageManagerWrapper.class
 com/google/android/gms/dynamic/ObjectWrapper.class
 com/google/android/gms/dynamite/DynamiteModule.class
+com/google/android/gms/internal/base/zad.class
+com/google/android/gms/internal/base/zae.class
 com/google/android/gms/internal/common/zzac.class
 com/google/android/gms/internal/common/zzag.class
 com/google/android/gms/internal/common/zzah.class
@@ -285,6 +291,9 @@ com/google/firebase/annotations/concurrent/Background.class
 com/google/firebase/annotations/concurrent/Blocking.class
 com/google/firebase/annotations/concurrent/Lightweight.class
 com/google/firebase/annotations/concurrent/UiThread.class
+com/google/firebase/appcheck/internal/NetworkClient$AttestationTokenType.class
+com/google/firebase/appcheck/ktx/FirebaseAppCheckKt.class
+com/google/firebase/appcheck/ktx/FirebaseAppCheckKtxRegistrar.class
 com/google/firebase/auth/ActionCodeResult$ActionDataKey.class
 com/google/firebase/auth/ActionCodeResult$Operation.class
 com/google/firebase/auth/ktx/AuthKt.class
@@ -307,6 +316,12 @@ com/google/firebase/ktx/FirebaseCommonKtxRegistrar.class
 com/google/firebase/ktx/FirebaseKt.class
 com/google/firebase/platforminfo/AutoValue_LibraryVersion.class
 com/google/firebase/platforminfo/LibraryVersion.class
+com/google/firebase/storage/StorageException$ErrorCode.class
+com/google/firebase/storage/ktx/FirebaseStorageKtxRegistrar.class
+com/google/firebase/storage/ktx/StorageKt.class
+com/google/firebase/storage/ktx/TaskState$InProgress.class
+com/google/firebase/storage/ktx/TaskState$Paused.class
+com/google/firebase/storage/ktx/TaskState.class
 com/google/gson/annotations/Expose.class
 com/google/gson/annotations/JsonAdapter.class
 com/google/gson/annotations/SerializedName.class

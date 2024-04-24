@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hamrochat/color-collection.dart';
-import 'package:hamrochat/setups/shortcuts.dart';
+import 'package:hamrochat/setups/shortcuts_controller.dart';
 
 class Signup_page extends StatefulWidget {
   const Signup_page({super.key});
