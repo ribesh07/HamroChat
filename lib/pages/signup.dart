@@ -7,24 +7,41 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hamrochat/color-collection.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hamrochat/setups/auth_controller.dart';
 import 'package:hamrochat/setups/shortcuts_controller.dart';
 
-class Signup_page extends StatefulWidget {
+class Signup_page extends ConsumerStatefulWidget {
   const Signup_page({super.key});
 
   @override
-  State<Signup_page> createState() => _Signup_pageState();
+  ConsumerState<Signup_page> createState() => _Signup_pageState();
 }
 
-class _Signup_pageState extends State<Signup_page> {
+class _Signup_pageState extends ConsumerState<Signup_page> {
   final emailcontroller = TextEditingController();
   final passcontroller = TextEditingController();
   final cpasscontroller = TextEditingController();
   File? image;
   void selectImage() async {
     image = await PickImageFromGallery(context);
-    setState(() {
-    });
+    setState(() {});
+  }
+
+  void storeUserData() async {
+    String email = emailcontroller.text.trim();
+    String name = email.split('@')[0];
+    String password = passcontroller.text.trim();
+    String cpassword = cpasscontroller.text.trim();
+
+    if (image != null) {
+      if (password == cpassword) {
+        if (email.isNotEmpty && password.isNotEmpty) {
+          ref.read(authControllerProvider).saveUserDataToFirebase(
+              context, name, email, password, image);
+        }
+      }
+    }
   }
 
   @override
@@ -75,40 +92,40 @@ class _Signup_pageState extends State<Signup_page> {
                             radius: 46,
                             child: GestureDetector(
                               onTap: selectImage,
-                              child:const Icon(
+                              child: const Icon(
                                 Icons.person,
                                 size: 50,
                               ),
                             ),
                           ),
-                    if (image==null)
-                     Positioned(
-                      bottom: -6,
-                      right: -10,
-                      child: IconButton(
-                        onPressed: () {
-                          selectImage();
-                        },
-                        icon: const Icon(
-                          Icons.add_a_photo_outlined,
-                          size: 30,
+                    if (image == null)
+                      Positioned(
+                        bottom: -6,
+                        right: -10,
+                        child: IconButton(
+                          onPressed: () {
+                            selectImage();
+                          },
+                          icon: const Icon(
+                            Icons.add_a_photo_outlined,
+                            size: 30,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(
                   height: 26,
                 ),
-                image == null?
-                const Text(
-                  'Add Image',
-                  style: textStyle,
-                )
-                :const Text(
-                  'Your Image',
-                  style: textStyle,
-                ),
+                image == null
+                    ? const Text(
+                        'Add Image',
+                        style: textStyle,
+                      )
+                    : const Text(
+                        'Your Image',
+                        style: textStyle,
+                      ),
                 const SizedBox(
                   height: 20,
                 ),
@@ -167,6 +184,9 @@ class _Signup_pageState extends State<Signup_page> {
                       setState(() {
                         if (passcontroller.text == cpasscontroller.text) {
                           debugPrint('password matched');
+                          storeUserData();
+                        }else{
+                          debugPrint('password not matched');
                         }
                       });
                     },
