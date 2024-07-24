@@ -1,10 +1,6 @@
 // ignore_for_file: camel_case_types
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hamrochat/color-collection.dart';
-import 'package:hamrochat/setups/shortcuts_controller.dart';
 
 class messagePage extends StatefulWidget {
   const messagePage({super.key});

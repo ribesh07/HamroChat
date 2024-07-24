@@ -4,7 +4,7 @@
             "outputFile": "com.example.hamrochat.app-mergeDebugResources-28:/values-fr/values-fr.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\67f176d1316fd38a3377b2932b3597b5\\transformed\\core-1.10.1\\res\\values-fr\\values-fr.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\e0b7dc9925772fc8405b25088930e621\\transformed\\core-1.10.1\\res\\values-fr\\values-fr.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -21,24 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\296a98dcd5b630e6b0f57bdc6e49b1ca\\transformed\\browser-1.4.0\\res\\values-fr\\values-fr.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,162,264,383",
-                        "endColumns": "106,101,118,104",
-                        "endOffsets": "157,259,378,483"
-                    },
-                    "to": {
-                        "startLines": "27,28,29,30",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "3184,3291,3393,3512",
-                        "endColumns": "106,101,118,104",
-                        "endOffsets": "3286,3388,3507,3612"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\a15ac1b4f0d91768c225aa16deb71725\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-fr\\values.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\1c4be858cb647f7a0e9bdf5a68f9fc58\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-fr\\values.xml",
                     "from": {
                         "startLines": "4",
                         "startColumns": "0",
@@ -55,7 +38,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\68d6c8e4f7795e3112f04111b892905a\\transformed\\jetified-play-services-base-18.1.0\\res\\values-fr\\values.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\79d71e3c6500d95a9c6906e36533a1c6\\transformed\\jetified-play-services-base-18.1.0\\res\\values-fr\\values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
                         "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -69,6 +52,23 @@
                         "startOffsets": "782,888,1068,1198,1307,1478,1611,1732,2010,2188,2300,2485,2621,2781,2960,3033,3100",
                         "endColumns": "105,179,129,108,170,132,120,112,177,111,184,135,159,178,72,66,83",
                         "endOffsets": "883,1063,1193,1302,1473,1606,1727,1840,2183,2295,2480,2616,2776,2955,3028,3095,3179"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\6443b857ea2a2502fa48136e719db63f\\transformed\\browser-1.4.0\\res\\values-fr\\values-fr.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,162,264,383",
+                        "endColumns": "106,101,118,104",
+                        "endOffsets": "157,259,378,483"
+                    },
+                    "to": {
+                        "startLines": "27,28,29,30",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "3184,3291,3393,3512",
+                        "endColumns": "106,101,118,104",
+                        "endOffsets": "3286,3388,3507,3612"
                     }
                 }
             ]

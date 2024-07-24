@@ -4,7 +4,7 @@
             "outputFile": "com.example.hamrochat.app-mergeDebugResources-28:/values-sv/values-sv.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\296a98dcd5b630e6b0f57bdc6e49b1ca\\transformed\\browser-1.4.0\\res\\values-sv\\values-sv.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\6443b857ea2a2502fa48136e719db63f\\transformed\\browser-1.4.0\\res\\values-sv\\values-sv.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
@@ -21,24 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\a15ac1b4f0d91768c225aa16deb71725\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-sv\\values.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\e0b7dc9925772fc8405b25088930e621\\transformed\\core-1.10.1\\res\\values-sv\\values-sv.xml",
                     "from": {
-                        "startLines": "4",
-                        "startColumns": "0",
-                        "startOffsets": "195",
-                        "endColumns": "143",
-                        "endOffsets": "338"
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,150,252,350,449,557,662,783",
+                        "endColumns": "94,101,97,98,107,104,120,100",
+                        "endOffsets": "145,247,345,444,552,657,778,879"
                     },
                     "to": {
-                        "startLines": "17",
-                        "startColumns": "4",
-                        "startOffsets": "1777",
-                        "endColumns": "147",
-                        "endOffsets": "1920"
+                        "startLines": "2,3,4,5,6,7,8,31",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,150,252,350,449,557,662,3400",
+                        "endColumns": "94,101,97,98,107,104,120,100",
+                        "endOffsets": "145,247,345,444,552,657,778,3496"
                     }
                 },
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\68d6c8e4f7795e3112f04111b892905a\\transformed\\jetified-play-services-base-18.1.0\\res\\values-sv\\values.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\79d71e3c6500d95a9c6906e36533a1c6\\transformed\\jetified-play-services-base-18.1.0\\res\\values-sv\\values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
                         "startColumns": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -55,20 +55,20 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\67f176d1316fd38a3377b2932b3597b5\\transformed\\core-1.10.1\\res\\values-sv\\values-sv.xml",
+                    "source": "C:\\Users\\Dell\\.gradle\\caches\\transforms-3\\1c4be858cb647f7a0e9bdf5a68f9fc58\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-sv\\values.xml",
                     "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,150,252,350,449,557,662,783",
-                        "endColumns": "94,101,97,98,107,104,120,100",
-                        "endOffsets": "145,247,345,444,552,657,778,879"
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "195",
+                        "endColumns": "143",
+                        "endOffsets": "338"
                     },
                     "to": {
-                        "startLines": "2,3,4,5,6,7,8,31",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,150,252,350,449,557,662,3400",
-                        "endColumns": "94,101,97,98,107,104,120,100",
-                        "endOffsets": "145,247,345,444,552,657,778,3496"
+                        "startLines": "17",
+                        "startColumns": "4",
+                        "startOffsets": "1777",
+                        "endColumns": "147",
+                        "endOffsets": "1920"
                     }
                 }
             ]

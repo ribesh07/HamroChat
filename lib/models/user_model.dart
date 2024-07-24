@@ -4,7 +4,7 @@ class User_model {
   final String email;
   final String uid;
   final String profileimage;
-  // final List <String> friends;
+  // final List <String> agents;
   final List<String> groupId;
   // List <String> chats;
   final bool Isonline;
@@ -15,7 +15,8 @@ class User_model {
       required this.uid,
       required this.profileimage,
       required this.groupId,
-      required this.Isonline});
+      required this.Isonline}
+      );
 
   Map<String, dynamic> toMap(){
     return {
