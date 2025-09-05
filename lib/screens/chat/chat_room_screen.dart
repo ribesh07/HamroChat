@@ -268,89 +268,91 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
           _buildTypingIndicator(),
 
           // Message input area
-          Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                top: BorderSide(
-                  color: Colors.grey[300]!,
-                  width: 0.5,
+          SafeArea(
+            child: Container(
+              // padding: EdgeInsets.only(
+              //   bottom: MediaQuery.of(context).viewInsets.bottom,
+              // ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.grey[300]!,
+                    width: 0.5,
+                  ),
                 ),
               ),
-            ),
-            child: Column(
-              children: [
-                if (isImageUploadingState)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: const Row(
+              child: Column(
+                children: [
+                  if (isImageUploadingState)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: const Row(
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Uploading image...'),
+                        ],
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
                       children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        IconButton(
+                          icon: const Icon(Icons.attach_file),
+                          onPressed: _showAttachmentOptions,
                         ),
-                        SizedBox(width: 12),
-                        Text('Uploading image...'),
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(_showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions),
+                                onPressed: () {
+                                  setState(() {
+                                    _showEmojiPicker = !_showEmojiPicker;
+                                  });
+                                },
+                              ),
+                            ),
+                            onChanged: _onTyping,
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send),
+                          onPressed: _sendMessage,
+                        ),
                       ],
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.attach_file),
-                        onPressed: _showAttachmentOptions,
+                  if (_showEmojiPicker)
+                    SizedBox(
+                      height: 250,
+                      child: EmojiPicker(
+                        onEmojiSelected: (category, emoji) {
+                          _messageController.text += emoji.emoji;
+                          _messageController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: _messageController.text.length),
+                          );
+                        },
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(_showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions),
-                              onPressed: () {
-                                setState(() {
-                                  _showEmojiPicker = !_showEmojiPicker;
-                                });
-                              },
-                            ),
-                          ),
-                          onChanged: _onTyping,
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send),
-                        onPressed: _sendMessage,
-                      ),
-                    ],
-                  ),
-                ),
-                if (_showEmojiPicker)
-                  SizedBox(
-                    height: 250,
-                    child: EmojiPicker(
-                      onEmojiSelected: (category, emoji) {
-                        _messageController.text += emoji.emoji;
-                        _messageController.selection = TextSelection.fromPosition(
-                          TextPosition(offset: _messageController.text.length),
-                        );
-                      },
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

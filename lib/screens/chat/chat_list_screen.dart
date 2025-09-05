@@ -20,13 +20,13 @@ class ChatListScreen extends ConsumerWidget {
         title: const Text('Chats'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality
-              _showSearchDialog(context, ref);
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.search),
+          //   onPressed: () {
+          //     // Implement search functionality
+          //     _showSearchDialog(context, ref);
+          //   },
+          // ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'profile') {
@@ -41,6 +41,7 @@ class ChatListScreen extends ConsumerWidget {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
+                padding: EdgeInsets.all(8),
                 value: 'profile',
                 child: ListTile(
                   leading: Icon(Icons.person),
@@ -48,6 +49,8 @@ class ChatListScreen extends ConsumerWidget {
                 ),
               ),
               const PopupMenuItem(
+                
+                padding: EdgeInsets.all(8),
                 value: 'logout',
                 child: ListTile(
                   leading: Icon(Icons.logout),
@@ -250,6 +253,7 @@ class ChatListScreen extends ConsumerWidget {
         content: SizedBox(
           width: double.maxFinite,
           child: TextField(
+            scrollPhysics: BouncingScrollPhysics(),
             autofocus: true,
             decoration: const InputDecoration(
               hintText: 'Enter name or email...',
