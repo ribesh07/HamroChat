@@ -27,6 +27,10 @@ class ChatListScreen extends ConsumerWidget {
           //     _showSearchDialog(context, ref);
           //   },
           // ),
+          IconButton(
+            icon: const Icon(Icons.refresh_outlined),
+           onPressed: () => ref.refresh(userChatsProvider),
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'profile') {
@@ -39,25 +43,35 @@ class ChatListScreen extends ConsumerWidget {
                 _showLogoutDialog(context, ref);
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                padding: EdgeInsets.all(8),
-                value: 'profile',
-                child: ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text('Profile'),
-                ),
+          itemBuilder: (context) => [
+            PopupMenuItem<String>(
+              value: 'profile',
+              child: Row(
+                children: const [
+                  Icon(Icons.person, size: 20, color: Colors.blueAccent),
+                  SizedBox(width: 12),
+                  Text(
+                    'Profile',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
               ),
-              const PopupMenuItem(
-                
-                padding: EdgeInsets.all(8),
-                value: 'logout',
-                child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text('Logout'),
-                ),
+            ),
+            PopupMenuItem<String>(
+              value: 'logout',
+              child: Row(
+                children: const [
+                  Icon(Icons.logout, size: 20, color: Colors.redAccent),
+                  SizedBox(width: 12),
+                  Text(
+                    'Logout',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
               ),
-            ],
+            ),
+          ]
+
           ),
         ],
       ),
