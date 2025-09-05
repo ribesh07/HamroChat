@@ -43,3 +43,6 @@
 # /android/app/release
 
 # lib/firebase/firebaseconfig.dart
+
+# FVM Version Cache
+.fvm/
