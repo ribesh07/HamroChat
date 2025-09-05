@@ -91,10 +91,12 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 // Search results provider
 final searchUsersProvider = FutureProvider<List<UserModel>>((ref) async {
   final query = ref.watch(searchQueryProvider);
-  if (query.trim().isEmpty) return [];
+  print('Search provider called with query: "$query"');
   
   final authRepository = ref.read(authRepositoryProvider);
-  return await authRepository.searchUsers(query);
+  final results = await authRepository.searchUsers(query);
+  print('Search provider returning ${results.length} users');
+  return results;
 });
 
 // Selected participants for group chat

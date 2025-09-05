@@ -17,6 +17,15 @@ class _NewChatScreenState extends ConsumerState<NewChatScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Trigger initial search to show all users
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(searchQueryProvider.notifier).state = '';
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -51,7 +60,7 @@ class _NewChatScreenState extends ConsumerState<NewChatScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search users by name or email...',
+            hintText: 'Search by name or email (leave empty to see all users)...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
@@ -69,64 +78,67 @@ class _NewChatScreenState extends ConsumerState<NewChatScreen> {
           Expanded(
             child: searchUsersAsync.when(
               data: (users) {
-                if (_searchController.text.trim().isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search,
-                          size: 80,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Search for users',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Type a name or email to find users',
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
+                print('Users found: ${users.length}'); // Debug print
+                
                 if (users.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person_search,
-                          size: 80,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No users found',
-                          style: TextStyle(
-                            fontSize: 18,
+                  if (_searchController.text.trim().isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_search,
+                            size: 80,
                             color: Colors.grey,
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Try a different search term',
-                          style: TextStyle(
+                          SizedBox(height: 16),
+                          Text(
+                            'No users found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Try creating an account first, or ask someone to register',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_search,
+                            size: 80,
                             color: Colors.grey,
                           ),
-                        ),
-                      ],
-                    ),
-                  );
+                          SizedBox(height: 16),
+                          Text(
+                            'No users found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Try a different search term',
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 }
 
                 return ListView.builder(

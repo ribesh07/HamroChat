@@ -25,6 +25,15 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   int _currentStep = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Trigger initial search to show all users
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(searchQueryProvider.notifier).state = '';
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _groupNameController.dispose();
@@ -224,10 +233,11 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
           height: 300,
           child: searchUsersAsync.when(
             data: (users) {
-              if (_searchController.text.trim().isEmpty) {
+              if (_searchController.text.trim().isEmpty && users.isEmpty) {
                 return const Center(
                   child: Text(
-                    'Search for users to add to the group',
+                    'No users available. Make sure at least two accounts exist.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey),
                   ),
                 );

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hamrochat/providers/providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:hamrochat/utils/debug_helper.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -265,6 +266,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             _showAboutDialog();
+                          },
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.bug_report_outlined, color: Colors.orange),
+                          title: const Text('Debug Tools'),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () {
+                            _showDebugDialog();
                           },
                         ),
                       ],
@@ -569,6 +579,61 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDebugDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Debug Tools'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Use these tools to help with testing:'),
+            SizedBox(height: 16),
+            Text('• Add Test Users - Creates sample users for testing'),
+            Text('• List Users - Shows all users in the database'),
+            Text('• Remove Test Users - Cleans up test data'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await DebugHelper.addTestUsers();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Test users added! Check the New Chat screen.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('Add Test Users'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await DebugHelper.listAllUsers();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('User list printed to console. Check debug output.'),
+                  ),
+                );
+              }
+            },
+            child: const Text('List Users'),
           ),
         ],
       ),

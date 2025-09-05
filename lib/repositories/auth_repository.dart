@@ -178,18 +178,85 @@ class AuthRepository {
   // Search users by email or display name
   Future<List<UserModel>> searchUsers(String query) async {
     try {
-      if (query.isEmpty) return [];
+      if (query.isEmpty) {
+        // If no query, return recent users (excluding current user)
+        final allUsersQuery = await _firestore
+            .collection('users')
+            .limit(20)
+            .get();
+        
+        final currentUserId = currentUser?.uid;
+        return allUsersQuery.docs
+            .map((doc) => UserModel.fromMap(doc.data()))
+            .where((user) => user.uid != currentUserId)
+            .toList();
+      }
 
-      final results = await _firestore
+      final searchQuery = query.toLowerCase().trim();
+      
+      // Search by display name (case insensitive)
+      final nameResults = await _firestore
           .collection('users')
           .where('displayName', isGreaterThanOrEqualTo: query)
           .where('displayName', isLessThan: '${query}z')
-          .limit(20)
+          .limit(10)
           .get();
 
-      return results.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+      // Search by email (case insensitive)  
+      final emailResults = await _firestore
+          .collection('users')
+          .where('email', isGreaterThanOrEqualTo: searchQuery)
+          .where('email', isLessThan: '${searchQuery}z')
+          .limit(10)
+          .get();
+
+      // Combine results and remove duplicates
+      final allResults = <UserModel>[];
+      final seenUids = <String>{};
+      final currentUserId = currentUser?.uid;
+
+      // Add name search results
+      for (var doc in nameResults.docs) {
+        final user = UserModel.fromMap(doc.data());
+        if (user.uid != currentUserId && !seenUids.contains(user.uid)) {
+          allResults.add(user);
+          seenUids.add(user.uid);
+        }
+      }
+
+      // Add email search results
+      for (var doc in emailResults.docs) {
+        final user = UserModel.fromMap(doc.data());
+        if (user.uid != currentUserId && !seenUids.contains(user.uid)) {
+          allResults.add(user);
+          seenUids.add(user.uid);
+        }
+      }
+
+      // Also search for partial matches in display name (case insensitive)
+      final allUsersQuery = await _firestore
+          .collection('users')
+          .limit(50)
+          .get();
+      
+      for (var doc in allUsersQuery.docs) {
+        final user = UserModel.fromMap(doc.data());
+        if (user.uid != currentUserId && !seenUids.contains(user.uid)) {
+          final displayName = user.displayName.toLowerCase();
+          final email = user.email.toLowerCase();
+          
+          if (displayName.contains(searchQuery) || email.contains(searchQuery)) {
+            allResults.add(user);
+            seenUids.add(user.uid);
+          }
+        }
+      }
+
+      print('Search query: "$query", found ${allResults.length} users');
+      return allResults.take(20).toList();
     } catch (e) {
-      throw Exception('Error searching users');
+      print('Error searching users: $e');
+      throw Exception('Error searching users: $e');
     }
   }
 

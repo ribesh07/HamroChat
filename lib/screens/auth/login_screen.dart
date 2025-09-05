@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:hamrochat/providers/providers.dart';
 import 'package:hamrochat/screens/auth/register_screen.dart';
+import 'package:hamrochat/widgets/animated_logo.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -41,22 +42,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Title
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
-                  ),
+                // Animated Logo
+                const PulsingLogo(size: 80),
                   const SizedBox(height: 16),
-                  Text(
-                    'HamroChat',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
+                Text(
+                  'HamroChat',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    letterSpacing: 2,
                   ),
+                ),
                   const SizedBox(height: 8),
                   Text(
                     'Welcome back! Sign in to continue',

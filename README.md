@@ -108,6 +108,29 @@ The app connects to your WebSocket server at `wss://render.vsd.com` for:
 - **Smooth animations** and transitions
 - **Proper loading states** for all async operations
 
+## 🐛 Troubleshooting
+
+### No Users Showing Up in Search?
+
+1. **Make sure you have multiple accounts**: You need at least 2 user accounts to see others in search
+2. **Use the Debug Tools**: Go to Profile → Debug Tools → "Add Test Users" to create sample users for testing
+3. **Check the console**: Debug information is printed to help identify issues
+4. **Leave search empty**: The search shows all available users when the search field is empty
+
+### Testing the App
+
+1. **Create multiple accounts** using different email addresses
+2. **Or use Debug Tools** to add test users (alice@example.com, bob@example.com, charlie@example.com)
+3. **Search functionality** works with both names and email addresses
+4. **Case insensitive search** - try partial matches too
+
+### Debug Console Output
+
+Watch the debug console for helpful information like:
+- `Search provider called with query: "..."`
+- `Search query: "...", found X users`
+- `Users found: X`
+
 ---
 
 **Built with ❤️ using Flutter and Firebase**
