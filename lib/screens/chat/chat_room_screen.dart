@@ -127,14 +127,49 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.chat.chatName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Consumer(
+                    builder: (context, ref, child) {
+                      return ref.watch(currentUserProvider).when(
+                            data: (currentUser) {
+                              String displayName = widget.chat.chatName;
+
+                              // For one-on-one chats, show the other participant's name
+                              if (widget.chat.type == ChatType.oneOnOne &&
+                                  currentUser != null) {
+                                // The chat name should already be resolved by the repository
+                                displayName = widget.chat.chatName;
+                              }
+
+                              return Text(
+                                displayName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            },
+                            loading: () => Text(
+                              widget.chat.chatName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            error: (_, __) => Text(
+                              widget.chat.chatName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                    },
                   ),
                   if (widget.chat.type == ChatType.oneOnOne)
                     const Text(
@@ -299,7 +334,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
           ),
 
           // Typing indicator
-          _buildTypingIndicator(),
+          // _buildTypingIndicator(),
 
           // Reply indicator
           _buildReplyIndicator(),
@@ -531,11 +566,17 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
                     ),
                     if (isMe) ...[
                       const SizedBox(width: 4),
-                      Icon(
-                        _getStatusIcon(message.status),
-                        size: 16,
-                        color: _getStatusColor(message.status),
-                      ),
+                      ref.watch(socketStatusStreamProvider).when(
+                            data: (status) {
+                              return Icon(
+                                _getStatusIcon(status['status']),
+                                size: 16,
+                                color: _getStatusColor(status['status']),
+                              );
+                            },
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
                     ],
                   ],
                 ),

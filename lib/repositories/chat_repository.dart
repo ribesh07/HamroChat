@@ -28,8 +28,52 @@ class ChatRepository {
         .where('isActive', isEqualTo: true)
         .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => ChatModel.fromMap(doc.data())).toList());
+        .asyncMap((snapshot) async {
+      final chats = <ChatModel>[];
+
+      for (var doc in snapshot.docs) {
+        final chat = ChatModel.fromMap(doc.data());
+
+        // For one-on-one chats, resolve the other participant's name
+        if (chat.type == ChatType.oneOnOne) {
+          final otherParticipantId = chat.participants.firstWhere(
+            (id) => id != userId,
+            orElse: () => chat.participants.first,
+          );
+
+          try {
+            final otherUserDoc = await _firestore
+                .collection('users')
+                .doc(otherParticipantId)
+                .get();
+
+            if (otherUserDoc.exists) {
+              final otherUserData = otherUserDoc.data()!;
+              final otherUserName =
+                  otherUserData['displayName'] ?? 'Unknown User';
+              final otherUserPhoto = otherUserData['photoURL'];
+
+              // Create a modified chat with the other user's name and photo
+              final modifiedChat = chat.copyWith(
+                chatName: otherUserName,
+                chatImage: otherUserPhoto,
+              );
+              chats.add(modifiedChat);
+            } else {
+              chats.add(chat);
+            }
+          } catch (e) {
+            // If we can't fetch the other user's data, use the original chat
+            chats.add(chat);
+          }
+        } else {
+          // For group chats, use the original chat data
+          chats.add(chat);
+        }
+      }
+
+      return chats;
+    });
   }
 
   // Get messages for a chat

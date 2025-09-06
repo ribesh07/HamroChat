@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hamrochat/screens/auth/login_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:hamrochat/providers/providers.dart';
@@ -62,6 +63,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: currentUserAsync.when(
         data: (user) {
           if (user == null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              ),
+            );
             return const Center(
               child: Text('User not found'),
             );

@@ -194,172 +194,99 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
   }
 
   Widget _buildChatTile(BuildContext context, WidgetRef ref, ChatModel chat) {
-    return Consumer(
-      builder: (context, ref, child) {
-        return ref.watch(currentUserProvider).when(
-              data: (currentUser) {
-                String displayName = chat.chatName;
-
-                // For one-on-one chats, show the other participant's name
-                if (chat.type == ChatType.oneOnOne && currentUser != null) {
-                  // We'll need to fetch the other user's name
-                  // For now, we'll use the stored chat name
-                  displayName = chat.chatName;
-                }
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundImage: chat.chatImage != null
-                        ? CachedNetworkImageProvider(chat.chatImage!)
-                        : null,
-                    child: chat.chatImage == null
-                        ? Icon(
-                            chat.type == ChatType.group
-                                ? Icons.group
-                                : Icons.person,
-                            size: 28,
-                          )
-                        : null,
-                  ),
-                  title: Text(
-                    displayName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: chat.lastMessage != null
-                      ? Text(
-                          chat.lastMessage!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                          ),
-                        )
-                      : null,
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (chat.lastMessageTime != null)
-                        Text(
-                          timeago.format(chat.lastMessageTime!),
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      // Unread message indicator
-                      Consumer(
-                        builder: (context, ref, child) {
-                          return ref
-                              .watch(unreadCountProvider(chat.chatId))
-                              .when(
-                                data: (count) {
-                                  if (count > 0) {
-                                    return Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 20,
-                                        minHeight: 20,
-                                      ),
-                                      child: Text(
-                                        count > 99 ? '99+' : count.toString(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    );
-                                  }
-                                  return const SizedBox.shrink();
-                                },
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, __) => const SizedBox.shrink(),
-                              );
-                        },
-                      ),
-                    ],
-                  ),
-                  onTap: () async {
-                    // Navigate to chat room
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ChatRoomScreen(chat: chat),
-                      ),
-                    );
-                    // Refresh chat list when returning from chat room
-                    ref.invalidate(userChatsProvider);
-                  },
-                  onLongPress: () {
-                    _showChatOptions(context, ref, chat);
-                  },
-                );
-              },
-              loading: () => ListTile(
-                leading: CircleAvatar(
-                  radius: 25,
-                  backgroundImage: chat.chatImage != null
-                      ? CachedNetworkImageProvider(chat.chatImage!)
-                      : null,
-                  child: chat.chatImage == null
-                      ? Icon(
-                          chat.type == ChatType.group
-                              ? Icons.group
-                              : Icons.person,
-                          size: 28,
-                        )
-                      : null,
-                ),
-                title: Text(
-                  chat.chatName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: const Text('Loading...'),
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 25,
+        backgroundImage: chat.chatImage != null
+            ? CachedNetworkImageProvider(chat.chatImage!)
+            : null,
+        child: chat.chatImage == null
+            ? Icon(
+                chat.type == ChatType.group ? Icons.group : Icons.person,
+                size: 28,
+              )
+            : null,
+      ),
+      title: Text(
+        chat.chatName,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: chat.lastMessage != null
+          ? Text(
+              chat.lastMessage!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.grey[600],
               ),
-              error: (_, __) => ListTile(
-                leading: CircleAvatar(
-                  radius: 25,
-                  backgroundImage: chat.chatImage != null
-                      ? CachedNetworkImageProvider(chat.chatImage!)
-                      : null,
-                  child: chat.chatImage == null
-                      ? Icon(
-                          chat.type == ChatType.group
-                              ? Icons.group
-                              : Icons.person,
-                          size: 28,
-                        )
-                      : null,
-                ),
-                title: Text(
-                  chat.chatName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: const Text('Error loading user data'),
+            )
+          : null,
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (chat.lastMessageTime != null)
+            Text(
+              timeago.format(chat.lastMessageTime!),
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12,
               ),
-            );
+            ),
+          const SizedBox(height: 4),
+          // Unread message indicator
+          Consumer(
+            builder: (context, ref, child) {
+              return ref.watch(unreadCountProvider(chat.chatId)).when(
+                    data: (count) {
+                      if (count > 0) {
+                        return Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
+                          child: Text(
+                            count > 99 ? '99+' : count.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  );
+            },
+          ),
+        ],
+      ),
+      onTap: () async {
+        // Navigate to chat room
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatRoomScreen(chat: chat),
+          ),
+        );
+        // Refresh chat list when returning from chat room
+        ref.invalidate(userChatsProvider);
+      },
+      onLongPress: () {
+        _showChatOptions(context, ref, chat);
       },
     );
   }
