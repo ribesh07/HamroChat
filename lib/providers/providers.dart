@@ -5,7 +5,10 @@ import 'package:hamrochat/models/chat_model.dart';
 import 'package:hamrochat/models/message_model.dart';
 import 'package:hamrochat/repositories/auth_repository.dart';
 import 'package:hamrochat/repositories/chat_repository.dart';
+import 'package:hamrochat/repositories/call_history_repository.dart';
 import 'package:hamrochat/services/socket_service.dart';
+import 'package:hamrochat/services/webrtc_service.dart';
+import 'package:hamrochat/models/call_history_model.dart';
 
 // Repository providers
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -16,8 +19,16 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   return ChatRepository();
 });
 
+final callHistoryRepositoryProvider = Provider<CallHistoryRepository>((ref) {
+  return CallHistoryRepository();
+});
+
 final socketServiceProvider = Provider<SocketService>((ref) {
   return SocketService();
+});
+
+final webrtcServiceProvider = Provider<WebRTCService>((ref) {
+  return WebRTCService();
 });
 
 // Auth state provider
@@ -149,6 +160,13 @@ final unreadCountProvider =
     FutureProvider.family<int, String>((ref, chatId) async {
   final chatRepository = ref.read(chatRepositoryProvider);
   return await chatRepository.getUnreadMessageCount(chatId);
+});
+
+// Call history stream provider
+final callHistoryProvider =
+    StreamProvider.family<List<CallHistoryModel>, String>((ref, userId) {
+  final callHistoryRepository = ref.read(callHistoryRepositoryProvider);
+  return callHistoryRepository.getAllCallHistory(userId);
 });
 
 // Auth methods provider

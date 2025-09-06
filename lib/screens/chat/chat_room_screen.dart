@@ -8,7 +8,10 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:hamrochat/models/chat_model.dart';
 import 'package:hamrochat/models/message_model.dart';
+import 'package:hamrochat/models/user_model.dart';
 import 'package:hamrochat/providers/providers.dart';
+import 'package:hamrochat/screens/call/call_screen.dart';
+import 'package:hamrochat/services/webrtc_service.dart';
 
 class ChatRoomScreen extends ConsumerStatefulWidget {
   final ChatModel chat;
@@ -195,23 +198,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: () {
-              // TODO: Implement video call
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Video call feature coming soon!')),
-              );
-            },
+            onPressed: () => _startVideoCall(context, ref),
           ),
           IconButton(
             icon: const Icon(Icons.call),
-            onPressed: () {
-              // TODO: Implement voice call
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Voice call feature coming soon!')),
-              );
-            },
+            onPressed: () => _startAudioCall(context, ref),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -940,5 +931,161 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _startVideoCall(BuildContext context, WidgetRef ref) async {
+    if (widget.chat.type != ChatType.oneOnOne) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('Video calls are only available for one-on-one chats')),
+      );
+      return;
+    }
+
+    try {
+      // Get the other user's information
+      final otherUserId = widget.chat.participants.firstWhere(
+        (id) => id != ref.read(currentUserProvider).value?.uid,
+        orElse: () => widget.chat.participants.first,
+      );
+
+      // For now, create a basic UserModel for the other user
+      // In a real app, you'd fetch this from your user repository
+      final otherUser = UserModel(
+        uid: otherUserId,
+        displayName: widget.chat.chatName,
+        email: '****@gmail.com', // You'd get this from your user data
+        photoURL: widget.chat.chatImage,
+        isOnline: true,
+        createdAt: DateTime.now(),
+        lastSeen: DateTime.now(),
+        blockedUsers: [],
+        fcmToken: '',
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Initialize WebRTC service
+      final webrtcService = WebRTCService();
+      await webrtcService.initialize();
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Navigate to call screen
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              otherUser: otherUser,
+              callType: CallType.video,
+              isIncoming: false,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start video call: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _startAudioCall(BuildContext context, WidgetRef ref) async {
+    if (widget.chat.type != ChatType.oneOnOne) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('Audio calls are only available for one-on-one chats')),
+      );
+      return;
+    }
+
+    try {
+      // Get the other user's information
+      final otherUserId = widget.chat.participants.firstWhere(
+        (id) => id != ref.read(currentUserProvider).value?.uid,
+        orElse: () => widget.chat.participants.first,
+      );
+
+      // For now, create a basic UserModel for the other user
+      // In a real app, you'd fetch this from your user repository
+      final otherUser = UserModel(
+        uid: otherUserId,
+        displayName: widget.chat.chatName,
+        email: '****@example.com', // You'd get this from your user data
+        photoURL: widget.chat.chatImage,
+        isOnline: true,
+        createdAt: DateTime.now(),
+        lastSeen: DateTime.now(),
+        blockedUsers: [],
+        fcmToken: '',
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Initialize WebRTC service
+      final webrtcService = WebRTCService();
+      await webrtcService.initialize();
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Navigate to call screen
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              otherUser: otherUser,
+              callType: CallType.audio,
+              isIncoming: false,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start audio call: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

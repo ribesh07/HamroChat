@@ -4,6 +4,20 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- <uses-permission android:name="android.permission.WAKE_LOCK"/> -->
     <uses-permission android:name="android.permission.VIBRATE"/>
+    
+    <!-- WebRTC permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- Camera features -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <application
         android:label="hamrochat"
         android:name="${applicationName}"

@@ -6,6 +6,7 @@ import 'package:hamrochat/screens/splash_screen.dart';
 import 'package:hamrochat/firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hamrochat/services/notification_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -47,6 +48,10 @@ void main() async {
   const initSettings = InitializationSettings(android: androidSettings);
   await flutterLocalNotificationsPlugin.initialize(initSettings);
 
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(const ProviderScope(child: ChatApp()));
 }
 
@@ -67,7 +72,7 @@ class _ChatAppState extends State<ChatApp> {
     const accentColor = Color(0xFFFF6B6B); // Coral
     const backgroundColor = Color(0xFFF8F9FA); // Light Gray
     const surfaceColor = Color(0xFFFFFFFF); // White
-    
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -79,7 +84,7 @@ class _ChatAppState extends State<ChatApp> {
         surface: surfaceColor,
         brightness: Brightness.light,
       ),
-      
+
       // AppBar Theme
       appBarTheme: const AppBarTheme(
         elevation: 0,
@@ -92,7 +97,7 @@ class _ChatAppState extends State<ChatApp> {
           color: Colors.white,
         ),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -105,14 +110,14 @@ class _ChatAppState extends State<ChatApp> {
           ),
         ),
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: secondaryColor,
         foregroundColor: Colors.white,
         elevation: 4,
       ),
-      
+
       // Card Theme
       cardTheme: CardTheme(
         elevation: 2,
@@ -121,7 +126,7 @@ class _ChatAppState extends State<ChatApp> {
         ),
         color: surfaceColor,
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -138,20 +143,21 @@ class _ChatAppState extends State<ChatApp> {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      
+
       // List Tile Theme
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      
+
       // Divider Theme
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade200,
         thickness: 1,
       ),
-      
+
       // Text Theme
       textTheme: const TextTheme(
         headlineLarge: TextStyle(

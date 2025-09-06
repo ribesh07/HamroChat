@@ -192,6 +192,19 @@ class SocketService {
     }
   }
 
+  // WebRTC related methods
+  Future<void> initialize() async {
+    // Initialize socket connection if needed
+  }
+
+  void on(String event, Function(dynamic) callback) {
+    _socket?.on(event, callback);
+  }
+
+  void emit(String event, dynamic data) {
+    _socket?.emit(event, data);
+  }
+
   void dispose() {
     disconnect();
     _messageController.close();

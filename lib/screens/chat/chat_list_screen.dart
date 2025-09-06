@@ -7,6 +7,7 @@ import 'package:hamrochat/models/user_model.dart';
 import 'package:hamrochat/screens/chat/chat_room_screen.dart';
 import 'package:hamrochat/screens/chat/new_chat_screen.dart';
 import 'package:hamrochat/screens/chat/profile_screen.dart';
+import 'package:hamrochat/screens/call/call_history_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
@@ -483,6 +484,21 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Settings coming soon!')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.call, color: Colors.blue),
+                  title: const Text(
+                    'Call History',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CallHistoryScreen(),
+                      ),
                     );
                   },
                 ),
