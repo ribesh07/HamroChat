@@ -51,60 +51,13 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
         title: const Text('Chats'),
         centerTitle: true,
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.search),
-          //   onPressed: () {
-          //     // Implement search functionality
-          //     _showSearchDialog(context, ref);
-          //   },
-          // ),
           IconButton(
             icon: const Icon(Icons.refresh_outlined),
             onPressed: () => ref.invalidate(userChatsProvider),
           ),
-          PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'profile') {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileScreen(),
-                    ),
-                  );
-                } else if (value == 'logout') {
-                  _showLogoutDialog(context, ref);
-                }
-              },
-              itemBuilder: (context) => [
-                    PopupMenuItem<String>(
-                      value: 'profile',
-                      child: Row(
-                        children: const [
-                          Icon(Icons.person,
-                              size: 20, color: Colors.blueAccent),
-                          SizedBox(width: 12),
-                          Text(
-                            'Profile',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'logout',
-                      child: Row(
-                        children: const [
-                          Icon(Icons.logout, size: 20, color: Colors.redAccent),
-                          SizedBox(width: 12),
-                          Text(
-                            'Logout',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]),
         ],
       ),
+      drawer: _buildDrawer(context, ref),
       body: userChatsAsync.when(
         data: (chats) {
           if (chats.isEmpty) {
@@ -314,6 +267,153 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context, WidgetRef ref) {
+    return Drawer(
+      child: Column(
+        children: [
+          // Drawer header with user info
+          Consumer(
+            builder: (context, ref, child) {
+              return ref.watch(currentUserProvider).when(
+                    data: (currentUser) {
+                      return UserAccountsDrawerHeader(
+                        accountName: Text(
+                          currentUser?.displayName ?? 'User',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        accountEmail: Text(
+                          currentUser?.email ?? 'user@example.com',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        currentAccountPicture: CircleAvatar(
+                          backgroundImage: currentUser?.photoURL != null
+                              ? CachedNetworkImageProvider(
+                                  currentUser!.photoURL!)
+                              : null,
+                          child: currentUser?.photoURL == null
+                              ? const Icon(Icons.person, size: 40)
+                              : null,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).primaryColor,
+                              Theme.of(context).primaryColor.withOpacity(0.8),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => UserAccountsDrawerHeader(
+                      accountName: const Text('Loading...'),
+                      accountEmail: const Text('Please wait...'),
+                      currentAccountPicture: const CircleAvatar(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                    error: (_, __) => UserAccountsDrawerHeader(
+                      accountName: const Text('Error'),
+                      accountEmail: const Text('Failed to load user data'),
+                      currentAccountPicture: const CircleAvatar(
+                        child: Icon(Icons.error, color: Colors.white),
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                  );
+            },
+          ),
+
+          // Drawer menu items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.person, color: Colors.blue),
+                  title: const Text(
+                    'Profile',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.settings, color: Colors.grey),
+                  title: const Text(
+                    'Settings',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Settings coming soon!')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.help, color: Colors.green),
+                  title: const Text(
+                    'Help & Support',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Help & Support coming soon!')),
+                    );
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showLogoutDialog(context, ref);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),

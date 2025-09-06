@@ -546,7 +546,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   currentUserAs.when(
                     data: (user) {
                       if (user == null) {
-                        return Navigator.of(context).push(
+                        return Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (context) => const LoginScreen(),
                           ),
@@ -557,7 +557,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     error: (_, __) => const SizedBox.shrink(),
                   );
 
-                  Navigator.of(context).push(
+                  Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
                       builder: (context) => const LoginScreen(),
                     ),
