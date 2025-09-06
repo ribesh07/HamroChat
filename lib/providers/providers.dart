@@ -107,6 +107,15 @@ final onlineUsersProvider = StreamProvider<Map<String, dynamic>>((ref) {
 // Search query provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
+// Searched users provider
+final searchedUsersProvider =
+    FutureProvider.family<List<UserModel>, String>((ref, query) async {
+  if (query.isEmpty) return [];
+
+  final authRepository = ref.read(authRepositoryProvider);
+  return await authRepository.searchUsers(query);
+});
+
 // Search results provider
 final searchUsersProvider = FutureProvider<List<UserModel>>((ref) async {
   final query = ref.watch(searchQueryProvider);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:hamrochat/providers/providers.dart';
 import 'package:hamrochat/models/chat_model.dart';
+import 'package:hamrochat/models/user_model.dart';
 import 'package:hamrochat/screens/chat/chat_room_screen.dart';
 import 'package:hamrochat/screens/chat/new_chat_screen.dart';
 import 'package:hamrochat/screens/chat/profile_screen.dart';
@@ -16,11 +17,31 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  late AnimationController _searchAnimationController;
+  late Animation<double> _searchAnimation;
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Initialize search animation
+    _searchAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _searchAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _searchAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
     // Refresh chat list when screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.invalidate(userChatsProvider);
@@ -30,6 +51,8 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _searchAnimationController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -47,91 +70,168 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
     final userChatsAsync = ref.watch(userChatsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined),
-            onPressed: () => ref.invalidate(userChatsProvider),
+      appBar: _isSearching
+          ? null
+          : AppBar(
+              title: const Text('Chats'),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _startSearch,
+                ),
+              ],
+            ),
+      drawer: _isSearching ? null : _buildDrawer(context, ref),
+      body: Column(
+        children: [
+          // Animated search bar
+          AnimatedBuilder(
+            animation: _searchAnimation,
+            builder: (context, child) {
+              return _isSearching
+                  ? Container(
+                      height: 56.0 + (_searchAnimation.value * 56.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back,
+                                    color: Colors.white),
+                                onPressed: _stopSearch,
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  autofocus: true,
+                                  style: const TextStyle(
+                                      color: Color.fromARGB(255, 32, 29, 29)),
+                                  decoration: const InputDecoration(
+                                    hintText: '  Search users...',
+                                    hintStyle: TextStyle(
+                                        color: Color.fromARGB(179, 23, 23, 23)),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 12,
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _searchQuery = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              if (_searchQuery.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.clear,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
+
+          // Content based on search state
+          Expanded(
+            child: _isSearching
+                ? _buildSearchResults()
+                : userChatsAsync.when(
+                    data: (chats) {
+                      if (chats.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No chats yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Start a new conversation!',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: chats.length,
+                        itemBuilder: (context, index) {
+                          final chat = chats[index];
+                          return _buildChatTile(context, ref, chat);
+                        },
+                      );
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    error: (error, stackTrace) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading chats',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(userChatsProvider),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
         ],
-      ),
-      drawer: _buildDrawer(context, ref),
-      body: userChatsAsync.when(
-        data: (chats) {
-          if (chats.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 80,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No chats yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Start a new conversation!',
-                    style: TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: chats.length,
-            itemBuilder: (context, index) {
-              final chat = chats[index];
-              return _buildChatTile(context, ref, chat);
-            },
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading chats',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Text(
-              //   error.toString(),
-              //   textAlign: TextAlign.center,
-              //   style: TextStyle(color: Colors.grey[600]),
-              // ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(userChatsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -418,6 +518,201 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
         ],
       ),
     );
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+    _searchAnimationController.forward();
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchQuery = '';
+      _searchController.clear();
+    });
+    _searchAnimationController.reverse();
+  }
+
+  Widget _buildSearchResults() {
+    if (_searchQuery.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search,
+              size: 80,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Search for users',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Type a name or email to find users',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Consumer(
+      builder: (context, ref, child) {
+        return ref.watch(searchedUsersProvider(_searchQuery)).when(
+              data: (users) {
+                if (users.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.person_search,
+                          size: 80,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No users found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Try a different search term',
+                          style: TextStyle(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return _buildUserTile(context, ref, user);
+                  },
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stackTrace) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error searching users',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () =>
+                          ref.invalidate(searchedUsersProvider(_searchQuery)),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+      },
+    );
+  }
+
+  Widget _buildUserTile(BuildContext context, WidgetRef ref, UserModel user) {
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 25,
+        backgroundImage: user.photoURL != null
+            ? CachedNetworkImageProvider(user.photoURL!)
+            : null,
+        child:
+            user.photoURL == null ? const Icon(Icons.person, size: 28) : null,
+      ),
+      title: Text(
+        user.displayName,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+      subtitle: Text(
+        user.email,
+        style: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 14,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: user.isOnline ? Colors.green : Colors.grey,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.chat, color: Colors.blue),
+            onPressed: () => _startChatWithUser(context, ref, user),
+          ),
+        ],
+      ),
+      onTap: () => _startChatWithUser(context, ref, user),
+    );
+  }
+
+  void _startChatWithUser(
+      BuildContext context, WidgetRef ref, UserModel user) async {
+    try {
+      final chatRepository = ref.read(chatRepositoryProvider);
+      final chat = await chatRepository.createOrGetOneOnOneChat(user.uid, user);
+
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatRoomScreen(chat: chat),
+          ),
+        );
+        _stopSearch();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting chat: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
