@@ -977,6 +977,17 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
       final webrtcService = WebRTCService();
       await webrtcService.initialize();
 
+      // Start the call with current user information
+      final currentUser = ref.read(currentUserProvider).value;
+      if (currentUser != null) {
+        await webrtcService.startCall(
+          otherUserId,
+          otherUser,
+          CallType.video,
+          currentUser: currentUser,
+        );
+      }
+
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -1054,6 +1065,17 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
       // Initialize WebRTC service
       final webrtcService = WebRTCService();
       await webrtcService.initialize();
+
+      // Start the call with current user information
+      final currentUser = ref.read(currentUserProvider).value;
+      if (currentUser != null) {
+        await webrtcService.startCall(
+          otherUserId,
+          otherUser,
+          CallType.audio,
+          currentUser: currentUser,
+        );
+      }
 
       // Close loading dialog
       if (context.mounted) {

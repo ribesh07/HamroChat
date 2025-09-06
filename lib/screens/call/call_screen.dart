@@ -26,16 +26,30 @@ class _CallScreenState extends ConsumerState<CallScreen> {
   bool _isMuted = false;
   bool _isCameraOff = false;
   bool _isSpeakerOn = false;
+  RTCVideoRenderer? _localVideoRenderer;
+  RTCVideoRenderer? _remoteVideoRenderer;
 
   @override
   void initState() {
     super.initState();
+    _initializeVideoRenderers();
     _initializeCall();
   }
 
   @override
   void dispose() {
+    _localVideoRenderer?.dispose();
+    _remoteVideoRenderer?.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeVideoRenderers() async {
+    if (widget.callType == CallType.video) {
+      _localVideoRenderer = RTCVideoRenderer();
+      _remoteVideoRenderer = RTCVideoRenderer();
+      await _localVideoRenderer!.initialize();
+      await _remoteVideoRenderer!.initialize();
+    }
   }
 
   Future<void> _initializeCall() async {
@@ -178,9 +192,12 @@ class _CallScreenState extends ConsumerState<CallScreen> {
       builder: (context, snapshot) {
         final remoteStream = snapshot.data;
 
-        if (remoteStream != null && widget.callType == CallType.video) {
+        if (remoteStream != null &&
+            widget.callType == CallType.video &&
+            _remoteVideoRenderer != null) {
+          _remoteVideoRenderer!.srcObject = remoteStream;
           return RTCVideoView(
-            RTCVideoRenderer()..initialize(),
+            _remoteVideoRenderer!,
             mirror: false,
             objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
           );
@@ -218,18 +235,28 @@ class _CallScreenState extends ConsumerState<CallScreen> {
       builder: (context, snapshot) {
         final localStream = snapshot.data;
 
-        if (localStream != null && widget.callType == CallType.video) {
+        if (localStream != null &&
+            widget.callType == CallType.video &&
+            _localVideoRenderer != null) {
+          _localVideoRenderer!.srcObject = localStream;
           return Container(
-            width: 120,
-            height: 160,
+            width: 100,
+            height: 140,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(13),
               child: RTCVideoView(
-                RTCVideoRenderer()..initialize(),
+                _localVideoRenderer!,
                 mirror: true,
                 objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
               ),

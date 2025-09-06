@@ -40,6 +40,9 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen>
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'All'),
             Tab(text: 'Missed'),

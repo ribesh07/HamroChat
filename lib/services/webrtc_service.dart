@@ -73,7 +73,8 @@ class WebRTCService {
 
   // Start a call
   Future<void> startCall(
-      String otherUserId, UserModel otherUser, CallType callType) async {
+      String otherUserId, UserModel otherUser, CallType callType,
+      {UserModel? currentUser}) async {
     try {
       _otherUserId = otherUserId;
       _otherUser = otherUser;
@@ -82,18 +83,20 @@ class WebRTCService {
 
       _updateCallState(CallState.calling);
 
-      // Save call history
-      await _saveCallHistory(
-        callerId: _otherUser?.uid ?? '',
-        receiverId: otherUserId,
-        callerName: _otherUser?.displayName ?? '',
-        receiverName: otherUser.displayName,
-        callerPhotoURL: _otherUser?.photoURL,
-        receiverPhotoURL: otherUser.photoURL,
-        callType: callType,
-        callStatus: CallStatus.ongoing,
-        isIncoming: false,
-      );
+      // Save call history if current user is provided
+      if (currentUser != null) {
+        await _saveCallHistory(
+          callerId: currentUser.uid,
+          receiverId: otherUserId,
+          callerName: currentUser.displayName,
+          receiverName: otherUser.displayName,
+          callerPhotoURL: currentUser.photoURL,
+          receiverPhotoURL: otherUser.photoURL,
+          callType: callType,
+          callStatus: CallStatus.ongoing,
+          isIncoming: false,
+        );
+      }
 
       // Request permissions
       await _requestPermissions(callType);

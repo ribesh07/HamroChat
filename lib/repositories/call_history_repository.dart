@@ -99,9 +99,14 @@ class CallHistoryRepository {
         .orderBy('startTime', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => CallHistoryModel.fromMap(doc.data()))
-          .toList();
+      try {
+        return snapshot.docs
+            .map((doc) => CallHistoryModel.fromMap(doc.data()))
+            .toList();
+      } catch (e) {
+        print('Error parsing call history: $e');
+        return <CallHistoryModel>[];
+      }
     });
   }
 
