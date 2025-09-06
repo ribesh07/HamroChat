@@ -63,11 +63,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: currentUserAsync.when(
         data: (user) {
           if (user == null) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const LoginScreen(),
-              ),
-            );
             return const Center(
               child: Text('User not found'),
             );
@@ -545,6 +540,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (context.mounted) {
                   Navigator.of(context).pop();
                 }
+
+                if (true) {
+                  final currentUserAs = ref.watch(currentUserProvider);
+                  currentUserAs.when(
+                    data: (user) {
+                      if (user == null) {
+                        return Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  );
+
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                }
               } catch (e) {
                 // Close loading dialog
                 if (context.mounted) {
@@ -555,7 +573,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Error during logout: $e'),
+                      content: Text('Error during logout !'),
                       backgroundColor: Colors.red,
                     ),
                   );
