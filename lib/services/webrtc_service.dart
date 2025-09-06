@@ -5,6 +5,7 @@ import 'package:hamrochat/services/socket_service.dart';
 import 'package:hamrochat/models/user_model.dart';
 import 'package:hamrochat/models/call_history_model.dart';
 import 'package:hamrochat/repositories/call_history_repository.dart';
+import 'package:hamrochat/services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 enum CallType { audio, video }
@@ -18,6 +19,7 @@ class WebRTCService {
 
   final SocketService _socketService = SocketService();
   final CallHistoryRepository _callHistoryRepository = CallHistoryRepository();
+  final NotificationService _notificationService = NotificationService();
 
   RTCPeerConnection? _peerConnection;
   MediaStream? _localStream;
@@ -117,11 +119,26 @@ class WebRTCService {
   }
 
   // Answer an incoming call
-  Future<void> answerCall() async {
+  Future<void> answerCall({UserModel? currentUser}) async {
     try {
       if (_currentCallType == null) return;
 
       _updateCallState(CallState.ringing);
+
+      // Save call history if current user is provided
+      if (currentUser != null && _otherUser != null) {
+        await _saveCallHistory(
+          callerId: _otherUser!.uid,
+          receiverId: currentUser.uid,
+          callerName: _otherUser!.displayName,
+          receiverName: currentUser.displayName,
+          callerPhotoURL: _otherUser!.photoURL,
+          receiverPhotoURL: currentUser.photoURL,
+          callType: _currentCallType!,
+          callStatus: CallStatus.ongoing,
+          isIncoming: true,
+        );
+      }
 
       // Request permissions
       await _requestPermissions(_currentCallType!);
@@ -144,13 +161,17 @@ class WebRTCService {
   // End the current call
   Future<void> endCall() async {
     try {
+      print('📞 Ending call...');
+
       if (_currentCallId != null) {
+        print('📤 Sending call-end signal...');
         _socketService.emit('call-end', {
           'callId': _currentCallId,
           'to': _otherUserId,
         });
 
         // Update call history
+        print('💾 Updating call history...');
         await _callHistoryRepository.updateCallStatus(
           callId: _currentCallId!,
           callStatus: CallStatus.answered,
@@ -160,31 +181,52 @@ class WebRTCService {
 
       await _cleanup();
       _updateCallState(CallState.ended);
+      print('✅ Call ended successfully');
     } catch (e) {
+      print('❌ Error ending call: $e');
       _handleError('Failed to end call: $e');
     }
   }
 
   // Reject an incoming call
-  Future<void> rejectCall() async {
+  Future<void> rejectCall({UserModel? currentUser}) async {
     try {
+      print('📞 Rejecting call...');
+
       if (_currentCallId != null) {
+        print('📤 Sending call-reject signal...');
         _socketService.emit('call-reject', {
           'callId': _currentCallId,
           'to': _otherUserId,
         });
 
-        // Update call history
-        await _callHistoryRepository.updateCallStatus(
-          callId: _currentCallId!,
-          callStatus: CallStatus.rejected,
-          endTime: DateTime.now(),
-        );
+        // Ensure call history exists
+        if (currentUser != null && _otherUser != null) {
+          await _saveCallHistory(
+            callerId: _otherUser!.uid,
+            receiverId: currentUser.uid,
+            callerName: _otherUser!.displayName,
+            receiverName: currentUser.displayName,
+            callerPhotoURL: _otherUser!.photoURL,
+            receiverPhotoURL: currentUser.photoURL,
+            callType: _currentCallType ?? CallType.audio,
+            callStatus: CallStatus.rejected,
+            isIncoming: true,
+          );
+        } else {
+          await _callHistoryRepository.updateCallStatus(
+            callId: _currentCallId!,
+            callStatus: CallStatus.rejected,
+            endTime: DateTime.now(),
+          );
+        }
       }
 
       await _cleanup();
       _updateCallState(CallState.idle);
+      print('✅ Call rejected successfully');
     } catch (e) {
+      print('❌ Error rejecting call: $e');
       _handleError('Failed to reject call: $e');
     }
   }
@@ -371,13 +413,17 @@ class WebRTCService {
   }
 
   Future<void> _handleCallEnd(Map<String, dynamic> data) async {
+    print('📞 Received call-end signal from remote party');
     await _cleanup();
     _updateCallState(CallState.ended);
+    print('✅ Call ended by remote party');
   }
 
   Future<void> _handleCallReject(Map<String, dynamic> data) async {
+    print('📞 Received call-reject signal from remote party');
     await _cleanup();
     _updateCallState(CallState.ended);
+    print('✅ Call rejected by remote party');
   }
 
   void _handleError(String error) {
@@ -388,6 +434,22 @@ class WebRTCService {
   void _updateCallState(CallState state) {
     _callState = state;
     _callStateController.add(state);
+
+    // Handle ongoing call notifications
+    if (state == CallState.connected &&
+        _otherUser != null &&
+        _currentCallType != null) {
+      _notificationService.showOngoingCallNotification(
+        otherUserName: _otherUser!.displayName,
+        otherUserId: _otherUser!.uid,
+        callType: _currentCallType!,
+        otherUserPhotoURL: _otherUser!.photoURL,
+      );
+    } else if (state == CallState.ended || state == CallState.failed) {
+      if (_otherUser != null) {
+        _notificationService.cancelOngoingCallNotification(_otherUser!.uid);
+      }
+    }
   }
 
   String _generateCallId() {
@@ -396,18 +458,51 @@ class WebRTCService {
   }
 
   Future<void> _cleanup() async {
+    print('🧹 Starting call cleanup...');
+
+    // Stop and dispose local stream
     if (_localStream != null) {
+      print('📹 Stopping local media stream...');
+      // Stop all tracks before disposing
+      for (var track in _localStream!.getTracks()) {
+        track.stop();
+        print('🛑 Stopped track: ${track.kind}');
+      }
       await _localStream!.dispose();
       _localStream = null;
+      _localStreamController.add(null);
+      print('✅ Local stream disposed');
     }
+
+    // Stop and dispose remote stream
     if (_remoteStream != null) {
+      print('📹 Stopping remote media stream...');
+      // Stop all tracks before disposing
+      for (var track in _remoteStream!.getTracks()) {
+        track.stop();
+        print('🛑 Stopped remote track: ${track.kind}');
+      }
       await _remoteStream!.dispose();
       _remoteStream = null;
+      _remoteStreamController.add(null);
+      print('✅ Remote stream disposed');
     }
+
+    // Close peer connection
     if (_peerConnection != null) {
+      print('🔌 Closing peer connection...');
       await _peerConnection!.close();
       _peerConnection = null;
+      print('✅ Peer connection closed');
     }
+
+    // Reset call state
+    _currentCallId = null;
+    _otherUserId = null;
+    _otherUser = null;
+    _currentCallType = null;
+
+    print('🎉 Call cleanup completed');
   }
 
   // Save call history

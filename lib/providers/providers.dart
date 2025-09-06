@@ -169,6 +169,30 @@ final callHistoryProvider =
   return callHistoryRepository.getAllCallHistory(userId);
 });
 
+// Call State Provider
+final callStateProvider = StreamProvider<CallState>((ref) {
+  final webrtcService = ref.watch(webrtcServiceProvider);
+  return webrtcService.callStateStream;
+});
+
+// Current Call Info Provider
+final currentCallInfoProvider = Provider<Map<String, dynamic>?>((ref) {
+  final webrtcService = ref.watch(webrtcServiceProvider);
+  final callState = ref.watch(callStateProvider).value ?? CallState.idle;
+
+  if (callState == CallState.idle ||
+      callState == CallState.ended ||
+      callState == CallState.failed) {
+    return null;
+  }
+
+  return {
+    'callType': webrtcService.currentCallType,
+    'otherUser': webrtcService.otherUser,
+    'callState': callState,
+  };
+});
+
 // Auth methods provider
 final authMethodsProvider = Provider<AuthMethods>((ref) {
   return AuthMethods(ref);

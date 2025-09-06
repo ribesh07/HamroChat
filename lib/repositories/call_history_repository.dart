@@ -39,10 +39,24 @@ class CallHistoryRepository {
         isIncoming: isIncoming,
       );
 
+      print('💾 Saving call history to: $_collection/$callId');
+      print('💾 Call history data: ${callHistory.toMap()}');
+
+      // Try saving to direct collection first
       await _firestore
           .collection(_collection)
           .doc(callId)
           .set(callHistory.toMap());
+
+      // Also save to subcollection structure for compatibility
+      await _firestore
+          .collection(_collection)
+          .doc(callId)
+          .collection('info')
+          .doc('call_data')
+          .set(callHistory.toMap());
+
+      print('✅ Call history saved successfully to both locations');
     } catch (e) {
       throw Exception('Failed to save call history: $e');
     }
@@ -74,7 +88,20 @@ class CallHistoryRepository {
     }
   }
 
-  // Get call history for a user
+  // // Get call history for a user
+  // Stream<List<CallHistoryModel>> getCallHistory(String userId) {
+  //   return _firestore
+  //       .collection(_collection)
+  //       .where('callerId', isEqualTo: userId)
+  //       .orderBy('startTime', descending: true)
+  //       .snapshots()
+  //       .map((snapshot) {
+  //     return snapshot.docs
+  //         .map((doc) => CallHistoryModel.fromMap(doc.data()))
+  //         .toList();
+  //   });
+  // }
+
   Stream<List<CallHistoryModel>> getCallHistory(String userId) {
     return _firestore
         .collection(_collection)
@@ -82,32 +109,124 @@ class CallHistoryRepository {
         .orderBy('startTime', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => CallHistoryModel.fromMap(doc.data()))
-          .toList();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return CallHistoryModel.fromMap({
+          ...data,
+          'id': doc.id, // attach Firestore doc id
+        });
+      }).toList();
     });
   }
 
   // Get call history for a user (including incoming calls)
   Stream<List<CallHistoryModel>> getAllCallHistory(String userId) {
+    print('🔍 Querying call history for user: $userId');
+    print('🔍 Collection: $_collection');
+
+    // First try the direct collection approach
     return _firestore
         .collection(_collection)
-        .where(Filter.or(
-          Filter('callerId', isEqualTo: userId),
-          Filter('receiverId', isEqualTo: userId),
-        ))
+        .where('callerId', isEqualTo: userId)
         .orderBy('startTime', descending: true)
         .snapshots()
-        .map((snapshot) {
+        .asyncMap((outgoingSnapshot) async {
       try {
-        return snapshot.docs
-            .map((doc) => CallHistoryModel.fromMap(doc.data()))
-            .toList();
+        print(
+            '📞 Outgoing calls query result: ${outgoingSnapshot.docs.length} docs');
+
+        // Get outgoing calls
+        final outgoingCalls = outgoingSnapshot.docs.map((doc) {
+          print('📞 Outgoing call doc: ${doc.id} -> ${doc.data()}');
+          return CallHistoryModel.fromMap(doc.data());
+        }).toList();
+
+        // Get incoming calls
+        print('🔍 Querying incoming calls...');
+        final incomingSnapshot = await _firestore
+            .collection(_collection)
+            .where('receiverId', isEqualTo: userId)
+            .orderBy('startTime', descending: true)
+            .get();
+
+        print(
+            '📞 Incoming calls query result: ${incomingSnapshot.docs.length} docs');
+        final incomingCalls = incomingSnapshot.docs.map((doc) {
+          print('📞 Incoming call doc: ${doc.id} -> ${doc.data()}');
+          return CallHistoryModel.fromMap(doc.data());
+        }).toList();
+
+        // If no calls found in direct collection, try subcollection approach
+        if (outgoingCalls.isEmpty && incomingCalls.isEmpty) {
+          print(
+              '🔍 No calls found in direct collection, trying subcollection approach...');
+          return await _getCallHistoryFromSubcollections(userId);
+        }
+
+        // Combine and sort by start time
+        final allCalls = [...outgoingCalls, ...incomingCalls];
+        allCalls.sort((a, b) => b.startTime.compareTo(a.startTime));
+
+        print(
+            '📞 Total call history records: ${allCalls.length} for user $userId');
+        return allCalls;
       } catch (e) {
-        print('Error parsing call history: $e');
+        print('❌ Error loading call history: $e');
+        print('❌ Stack trace: ${StackTrace.current}');
         return <CallHistoryModel>[];
       }
     });
+  }
+
+  // Alternative method to get call history from subcollections
+  Future<List<CallHistoryModel>> _getCallHistoryFromSubcollections(
+      String userId) async {
+    try {
+      print('🔍 Trying subcollection approach for user: $userId');
+
+      // Get all documents in call_history collection
+      final allDocsSnapshot = await _firestore.collection(_collection).get();
+      print(
+          '📞 Found ${allDocsSnapshot.docs.length} documents in call_history collection');
+
+      final allCalls = <CallHistoryModel>[];
+
+      for (var doc in allDocsSnapshot.docs) {
+        print('🔍 Checking document: ${doc.id}');
+
+        // Check if this document has an 'info' subcollection
+        final infoSnapshot = await doc.reference.collection('info').get();
+        print(
+            '📞 Document ${doc.id} has ${infoSnapshot.docs.length} info subdocuments');
+
+        for (var infoDoc in infoSnapshot.docs) {
+          print('📞 Info doc: ${infoDoc.id} -> ${infoDoc.data()}');
+
+          try {
+            final callData = infoDoc.data();
+            // Check if this call involves the current user
+            if (callData['callerId'] == userId ||
+                callData['receiverId'] == userId) {
+              final call = CallHistoryModel.fromMap(callData);
+              allCalls.add(call);
+              print('✅ Added call: ${call.callId}');
+            }
+          } catch (e) {
+            print('❌ Error parsing call data from subcollection: $e');
+          }
+        }
+      }
+
+      // Sort by start time
+      allCalls.sort((a, b) => b.startTime.compareTo(a.startTime));
+
+      print(
+          '📞 Found ${allCalls.length} calls in subcollections for user $userId');
+      return allCalls;
+    } catch (e) {
+      print('❌ Error loading call history from subcollections: $e');
+      return <CallHistoryModel>[];
+    }
   }
 
   // Get call history between two users

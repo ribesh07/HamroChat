@@ -23,6 +23,7 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    print('📞 CallHistoryScreen initialized');
   }
 
   @override
@@ -138,18 +139,26 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen>
         return currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
+              print('❌ No current user found');
               return const Center(
                 child: Text('Please log in to view call history'),
               );
             }
 
+            print('👤 Loading call history for user: ${currentUser.uid}');
             return ref.watch(callHistoryProvider(currentUser.uid)).when(
                   data: (callHistory) {
+                    print(
+                        '📞 Call history data received: ${callHistory.length} calls');
                     final filteredCalls = _filterCalls(callHistory, filter);
                     final searchedCalls =
                         _searchCalls(filteredCalls, _searchQuery);
 
+                    print(
+                        '📞 Filtered calls: ${filteredCalls.length}, searched: ${searchedCalls.length}');
+
                     if (searchedCalls.isEmpty) {
+                      print('📞 No calls found, showing empty state');
                       return _buildEmptyState(filter);
                     }
 
@@ -164,32 +173,60 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen>
                   loading: () => const Center(
                     child: CircularProgressIndicator(),
                   ),
-                  error: (error, stackTrace) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading call history',
-                          style: TextStyle(
-                            fontSize: 18,
+                  error: (error, stackTrace) {
+                    print('❌ Call history error: $error');
+                    print('❌ Stack trace: $stackTrace');
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
                             color: Colors.red,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () => ref
-                              .invalidate(callHistoryProvider(currentUser.uid)),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading call history',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
+                              'Error: ${error.toString()}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              print('🔄 Retrying call history load...');
+                              ref.invalidate(
+                                  callHistoryProvider(currentUser.uid));
+                            },
+                            child: const Text('Retry'),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () {
+                              print('🔄 Refreshing call history...');
+                              ref.invalidate(
+                                  callHistoryProvider(currentUser.uid));
+                            },
+                            child: const Text('Refresh'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
           },
           loading: () => const Center(

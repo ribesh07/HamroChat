@@ -8,6 +8,7 @@ import 'package:hamrochat/screens/chat/chat_room_screen.dart';
 import 'package:hamrochat/screens/chat/new_chat_screen.dart';
 import 'package:hamrochat/screens/chat/profile_screen.dart';
 import 'package:hamrochat/screens/call/call_history_screen.dart';
+import 'package:hamrochat/widgets/ongoing_call_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
@@ -86,6 +87,9 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen>
       drawer: _isSearching ? null : _buildDrawer(context, ref),
       body: Column(
         children: [
+          // Ongoing call indicator
+          const OngoingCallIndicator(),
+
           // Animated search bar
           AnimatedBuilder(
             animation: _searchAnimation,

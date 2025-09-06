@@ -33,24 +33,34 @@ class CallHistoryModel {
   });
 
   factory CallHistoryModel.fromMap(Map<String, dynamic> map) {
-    return CallHistoryModel(
-      callId: map['callId'] ?? '',
-      callerId: map['callerId'] ?? '',
-      receiverId: map['receiverId'] ?? '',
-      callerName: map['callerName'] ?? '',
-      receiverName: map['receiverName'] ?? '',
-      callerPhotoURL: map['callerPhotoURL'],
-      receiverPhotoURL: map['receiverPhotoURL'],
-      callType: CallType.values[map['callType'] ?? 0],
-      callStatus: CallStatus.values[map['callStatus'] ?? 0],
-      startTime: (map['startTime'] as Timestamp).toDate(),
-      endTime: map['endTime'] != null
-          ? (map['endTime'] as Timestamp).toDate()
-          : null,
-      duration:
-          map['duration'] != null ? Duration(seconds: map['duration']) : null,
-      isIncoming: map['isIncoming'] ?? false,
-    );
+    try {
+      return CallHistoryModel(
+        callId: map['callId']?.toString() ?? '',
+        callerId: map['callerId']?.toString() ?? '',
+        receiverId: map['receiverId']?.toString() ?? '',
+        callerName: map['callerName']?.toString() ?? '',
+        receiverName: map['receiverName']?.toString() ?? '',
+        callerPhotoURL: map['callerPhotoURL']?.toString(),
+        receiverPhotoURL: map['receiverPhotoURL']?.toString(),
+        callType: CallType.values[map['callType'] is int ? map['callType'] : 0],
+        callStatus:
+            CallStatus.values[map['callStatus'] is int ? map['callStatus'] : 0],
+        startTime: map['startTime'] is Timestamp
+            ? (map['startTime'] as Timestamp).toDate()
+            : DateTime.now(),
+        endTime: map['endTime'] is Timestamp
+            ? (map['endTime'] as Timestamp).toDate()
+            : null,
+        duration: map['duration'] is int
+            ? Duration(seconds: map['duration'] as int)
+            : null,
+        isIncoming: map['isIncoming'] is bool ? map['isIncoming'] : false,
+      );
+    } catch (e) {
+      print('❌ Error parsing call history model: $e');
+      print('❌ Map data: $map');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toMap() {

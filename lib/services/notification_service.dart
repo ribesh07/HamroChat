@@ -106,6 +106,48 @@ class NotificationService {
     );
   }
 
+  // Show ongoing call notification
+  Future<void> showOngoingCallNotification({
+    required String otherUserName,
+    required String otherUserId,
+    required CallType callType,
+    String? otherUserPhotoURL,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'call_channel',
+      'Call Notifications',
+      channelDescription: 'Notifications for ongoing calls',
+      importance: Importance.low,
+      ongoing: true,
+      autoCancel: false,
+      showWhen: false,
+      actions: [
+        AndroidNotificationAction('return_to_call', 'Return to Call'),
+        AndroidNotificationAction('end_call', 'End Call'),
+      ],
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: false,
+      presentBadge: false,
+      presentSound: false,
+      categoryIdentifier: 'ongoing_call_category',
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      'ongoing_call_$otherUserId'.hashCode,
+      'Ongoing ${callType == CallType.video ? 'Video' : 'Audio'} Call',
+      'With $otherUserName',
+      notificationDetails,
+      payload: 'ongoing_call_$otherUserId',
+    );
+  }
+
   // Show missed call notification
   Future<void> showMissedCallNotification({
     required String callerName,
@@ -176,6 +218,11 @@ class NotificationService {
   // Cancel call notification
   Future<void> cancelCallNotification(String callerId) async {
     await _localNotifications.cancel('incoming_call_$callerId'.hashCode);
+  }
+
+  // Cancel ongoing call notification
+  Future<void> cancelOngoingCallNotification(String otherUserId) async {
+    await _localNotifications.cancel('ongoing_call_$otherUserId'.hashCode);
   }
 
   // Cancel all notifications
