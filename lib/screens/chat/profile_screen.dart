@@ -18,7 +18,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   bool _isEditing = false;
   bool _isUploading = false;
   File? _newProfileImage;
@@ -86,7 +86,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         backgroundImage: _newProfileImage != null
                             ? FileImage(_newProfileImage!) as ImageProvider
                             : (user.photoURL != null
-                                ? CachedNetworkImageProvider(user.photoURL!) as ImageProvider
+                                ? CachedNetworkImageProvider(user.photoURL!)
+                                    as ImageProvider
                                 : null),
                         child: _newProfileImage == null && user.photoURL == null
                             ? const Icon(Icons.person, size: 80)
@@ -101,7 +102,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                             child: const Center(
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             ),
                           ),
@@ -117,7 +119,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Theme.of(context).primaryColor,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
                               ),
                               child: const Icon(
                                 Icons.camera_alt,
@@ -204,12 +207,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                         ListTile(
                           leading: Icon(
-                            user.isOnline ? Icons.circle : Icons.circle_outlined,
+                            user.isOnline
+                                ? Icons.circle
+                                : Icons.circle_outlined,
                             color: user.isOnline ? Colors.green : Colors.grey,
                           ),
                           title: Text(user.isOnline ? 'Online' : 'Offline'),
                           subtitle: user.lastSeen != null
-                              ? Text('Last seen: ${_formatLastSeen(user.lastSeen!)}')
+                              ? Text(
+                                  'Last seen: ${_formatLastSeen(user.lastSeen!)}')
                               : null,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -228,11 +234,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ListTile(
                           leading: const Icon(Icons.notifications_outlined),
                           title: const Text('Notifications'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Notification settings coming soon!'),
+                                content:
+                                    Text('Notification settings coming soon!'),
                               ),
                             );
                           },
@@ -241,7 +249,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ListTile(
                           leading: const Icon(Icons.privacy_tip_outlined),
                           title: const Text('Privacy'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -254,7 +263,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ListTile(
                           leading: const Icon(Icons.help_outline),
                           title: const Text('Help & Support'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             _showHelpDialog();
                           },
@@ -263,16 +273,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ListTile(
                           leading: const Icon(Icons.info_outline),
                           title: const Text('About'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             _showAboutDialog();
                           },
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Icons.bug_report_outlined, color: Colors.orange),
+                          leading: const Icon(Icons.bug_report_outlined,
+                              color: Colors.orange),
                           title: const Text('Debug Tools'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                              const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () {
                             _showDebugDialog();
                           },
@@ -287,7 +300,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _showLogoutDialog,
+                    onPressed: () => _showLogoutDialog(context, ref),
                     icon: const Icon(Icons.logout),
                     label: const Text('Logout'),
                     style: ElevatedButton.styleFrom(
@@ -413,7 +426,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   void _saveProfile() async {
     final name = _nameController.text.trim();
-    
+
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -430,7 +443,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       final authRepository = ref.read(authRepositoryProvider);
       final currentUser = await ref.read(currentUserProvider.future);
-      
+
       if (currentUser == null) return;
 
       String? newPhotoURL = currentUser.photoURL;
@@ -441,7 +454,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             .ref()
             .child('profile_images')
             .child('${currentUser.uid}.jpg');
-        
+
         await ref.putFile(_newProfileImage!);
         newPhotoURL = await ref.getDownloadURL();
       }
@@ -449,8 +462,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       // Update user profile
       final updatedUser = currentUser.copyWith(
         displayName: name,
-        phoneNumber: _phoneController.text.trim().isNotEmpty 
-            ? _phoneController.text.trim() 
+        phoneNumber: _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
             : null,
         photoURL: newPhotoURL,
       );
@@ -490,22 +503,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _showLogoutDialog() {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
       builder: (context) => AlertDialog(
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
-              final authMethods = ref.read(authMethodsProvider);
-              await authMethods.signOut();
+              try {
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+
+                final authMethods = ref.read(authMethodsProvider);
+                await authMethods.signOut();
+
+                // Close loading dialog
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+
+                // Close logout dialog
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              } catch (e) {
+                // Close loading dialog
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+
+                // Show error message
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error during logout: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -516,6 +565,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
+
+  // void _showLogoutDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Logout'),
+  //       content: const Text('Are you sure you want to logout?'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () async {
+  //             Navigator.pop(context);
+  //             final authMethods = ref.read(authMethodsProvider);
+  //             await authMethods.signOut();
+  //           },
+  //           style: ElevatedButton.styleFrom(
+  //             backgroundColor: Colors.red,
+  //           ),
+  //           child: const Text('Logout'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showHelpDialog() {
     showDialog(
@@ -613,7 +689,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Test users added! Check the New Chat screen.'),
+                    content:
+                        Text('Test users added! Check the New Chat screen.'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -628,7 +705,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('User list printed to console. Check debug output.'),
+                    content: Text(
+                        'User list printed to console. Check debug output.'),
                   ),
                 );
               }

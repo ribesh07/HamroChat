@@ -9,16 +9,21 @@ class SocketService {
 
   io.Socket? _socket;
   String? _currentUserId;
-  final StreamController<MessageModel> _messageController = StreamController<MessageModel>.broadcast();
-  final StreamController<Map<String, dynamic>> _statusController = StreamController<Map<String, dynamic>>.broadcast();
-  final StreamController<String> _typingController = StreamController<String>.broadcast();
-  final StreamController<Map<String, dynamic>> _onlineUsersController = StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<MessageModel> _messageController =
+      StreamController<MessageModel>.broadcast();
+  final StreamController<Map<String, dynamic>> _statusController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<String> _typingController =
+      StreamController<String>.broadcast();
+  final StreamController<Map<String, dynamic>> _onlineUsersController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   // Stream getters
   Stream<MessageModel> get messageStream => _messageController.stream;
   Stream<Map<String, dynamic>> get statusStream => _statusController.stream;
   Stream<String> get typingStream => _typingController.stream;
-  Stream<Map<String, dynamic>> get onlineUsersStream => _onlineUsersController.stream;
+  Stream<Map<String, dynamic>> get onlineUsersStream =>
+      _onlineUsersController.stream;
 
   bool get isConnected => _socket?.connected ?? false;
 

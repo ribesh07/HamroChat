@@ -29,11 +29,18 @@ final authStateProvider = StreamProvider<User?>((ref) {
 // Current user provider
 final currentUserProvider = FutureProvider<UserModel?>((ref) async {
   final authRepository = ref.read(authRepositoryProvider);
-  final user = authRepository.currentUser;
-  if (user != null) {
-    return await authRepository.getUserById(user.uid);
-  }
-  return null;
+  final authState = ref.watch(authStateProvider);
+
+  return authState.when(
+    data: (user) async {
+      if (user != null) {
+        return await authRepository.getUserById(user.uid);
+      }
+      return null;
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
 });
 
 // Auth loading state
@@ -52,11 +59,23 @@ final chatErrorProvider = StateProvider<String?>((ref) => null);
 // User chats stream provider
 final userChatsProvider = StreamProvider<List<ChatModel>>((ref) {
   final chatRepository = ref.read(chatRepositoryProvider);
-  return chatRepository.getUserChats();
+  final authState = ref.watch(authStateProvider);
+
+  return authState.when(
+    data: (user) {
+      if (user != null) {
+        return chatRepository.getUserChats();
+      }
+      return Stream.value([]);
+    },
+    loading: () => Stream.value([]),
+    error: (_, __) => Stream.value([]),
+  );
 });
 
 // Chat messages stream provider
-final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((ref, chatId) {
+final chatMessagesProvider =
+    StreamProvider.family<List<MessageModel>, String>((ref, chatId) {
   final chatRepository = ref.read(chatRepositoryProvider);
   return chatRepository.getChatMessages(chatId);
 });
@@ -92,7 +111,7 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 final searchUsersProvider = FutureProvider<List<UserModel>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   print('Search provider called with query: "$query"');
-  
+
   final authRepository = ref.read(authRepositoryProvider);
   final results = await authRepository.searchUsers(query);
   print('Search provider returning ${results.length} users');
@@ -100,7 +119,8 @@ final searchUsersProvider = FutureProvider<List<UserModel>>((ref) async {
 });
 
 // Selected participants for group chat
-final selectedParticipantsProvider = StateProvider<List<UserModel>>((ref) => []);
+final selectedParticipantsProvider =
+    StateProvider<List<UserModel>>((ref) => []);
 
 // Message input controller states
 final messageTextProvider = StateProvider<String>((ref) => '');
@@ -116,7 +136,8 @@ final groupNameProvider = StateProvider<String>((ref) => '');
 final groupDescriptionProvider = StateProvider<String>((ref) => '');
 
 // Unread messages count provider
-final unreadCountProvider = FutureProvider.family<int, String>((ref, chatId) async {
+final unreadCountProvider =
+    FutureProvider.family<int, String>((ref, chatId) async {
   final chatRepository = ref.read(chatRepositoryProvider);
   return await chatRepository.getUnreadMessageCount(chatId);
 });
@@ -141,7 +162,8 @@ class AuthMethods {
       ref.read(authErrorProvider.notifier).state = null;
 
       final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.signUpWithEmailPassword(email, password, displayName);
+      await authRepository.signUpWithEmailPassword(
+          email, password, displayName);
     } catch (e) {
       ref.read(authErrorProvider.notifier).state = e.toString();
     } finally {
@@ -192,10 +214,12 @@ class ChatMethods {
   final Ref ref;
   ChatMethods(this.ref);
 
-  Future<void> sendTextMessage(String chatId, String content) async {
+  Future<void> sendTextMessage(String chatId, String content,
+      {String? replyToMessageId}) async {
     try {
       final chatRepository = ref.read(chatRepositoryProvider);
-      await chatRepository.sendTextMessage(chatId, content);
+      await chatRepository.sendTextMessage(chatId, content,
+          replyToMessageId: replyToMessageId);
       ref.read(messageTextProvider.notifier).state = '';
     } catch (e) {
       ref.read(chatErrorProvider.notifier).state = e.toString();
@@ -214,11 +238,13 @@ class ChatMethods {
     }
   }
 
-  Future<ChatModel?> createOrGetOneOnOneChat(String otherUserId, UserModel otherUser) async {
+  Future<ChatModel?> createOrGetOneOnOneChat(
+      String otherUserId, UserModel otherUser) async {
     try {
       ref.read(chatLoadingProvider.notifier).state = true;
       final chatRepository = ref.read(chatRepositoryProvider);
-      return await chatRepository.createOrGetOneOnOneChat(otherUserId, otherUser);
+      return await chatRepository.createOrGetOneOnOneChat(
+          otherUserId, otherUser);
     } catch (e) {
       ref.read(chatErrorProvider.notifier).state = e.toString();
       return null;
@@ -250,7 +276,8 @@ class ChatMethods {
     }
   }
 
-  Future<void> markMessagesAsRead(String chatId, List<String> messageIds) async {
+  Future<void> markMessagesAsRead(
+      String chatId, List<String> messageIds) async {
     try {
       final chatRepository = ref.read(chatRepositoryProvider);
       await chatRepository.markMessagesAsRead(chatId, messageIds);

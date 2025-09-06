@@ -14,6 +14,10 @@ class AuthWrapper extends ConsumerWidget {
     return authState.when(
       data: (user) {
         if (user != null) {
+          // Refresh chat list when user logs in
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.invalidate(userChatsProvider);
+          });
           return const ChatListScreen();
         } else {
           return const LoginScreen();

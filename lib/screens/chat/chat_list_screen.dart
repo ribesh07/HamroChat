@@ -8,11 +8,42 @@ import 'package:hamrochat/screens/chat/new_chat_screen.dart';
 import 'package:hamrochat/screens/chat/profile_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ChatListScreen extends ConsumerWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends ConsumerState<ChatListScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Refresh chat list when screen is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(userChatsProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh chat list when app resumes
+      ref.invalidate(userChatsProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userChatsAsync = ref.watch(userChatsProvider);
 
     return Scaffold(
@@ -29,50 +60,49 @@ class ChatListScreen extends ConsumerWidget {
           // ),
           IconButton(
             icon: const Icon(Icons.refresh_outlined),
-           onPressed: () => ref.refresh(userChatsProvider),
+            onPressed: () => ref.invalidate(userChatsProvider),
           ),
           PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'profile') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              } else if (value == 'logout') {
-                _showLogoutDialog(context, ref);
-              }
-            },
-          itemBuilder: (context) => [
-            PopupMenuItem<String>(
-              value: 'profile',
-              child: Row(
-                children: const [
-                  Icon(Icons.person, size: 20, color: Colors.blueAccent),
-                  SizedBox(width: 12),
-                  Text(
-                    'Profile',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem<String>(
-              value: 'logout',
-              child: Row(
-                children: const [
-                  Icon(Icons.logout, size: 20, color: Colors.redAccent),
-                  SizedBox(width: 12),
-                  Text(
-                    'Logout',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ]
-
-          ),
+              onSelected: (value) {
+                if (value == 'profile') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                } else if (value == 'logout') {
+                  _showLogoutDialog(context, ref);
+                }
+              },
+              itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      value: 'profile',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.person,
+                              size: 20, color: Colors.blueAccent),
+                          SizedBox(width: 12),
+                          Text(
+                            'Profile',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.logout, size: 20, color: Colors.redAccent),
+                          SizedBox(width: 12),
+                          Text(
+                            'Logout',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
         ],
       ),
       body: userChatsAsync.when(
@@ -143,7 +173,7 @@ class ChatListScreen extends ConsumerWidget {
               // ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.refresh(userChatsProvider),
+                onPressed: () => ref.invalidate(userChatsProvider),
                 child: const Text('Retry'),
               ),
             ],
@@ -164,97 +194,172 @@ class ChatListScreen extends ConsumerWidget {
   }
 
   Widget _buildChatTile(BuildContext context, WidgetRef ref, ChatModel chat) {
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        backgroundImage: chat.chatImage != null
-            ? CachedNetworkImageProvider(chat.chatImage!)
-            : null,
-        child: chat.chatImage == null
-            ? Icon(
-                chat.type == ChatType.group ? Icons.group : Icons.person,
-                size: 28,
-              )
-            : null,
-      ),
-      title: Text(
-        chat.chatName,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: chat.lastMessage != null
-          ? Text(
-              chat.lastMessage!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey[600],
-              ),
-            )
-          : null,
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (chat.lastMessageTime != null)
-            Text(
-              timeago.format(chat.lastMessageTime!),
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 12,
-              ),
-            ),
-          const SizedBox(height: 4),
-          // Unread message indicator
-          Consumer(
-            builder: (context, ref, child) {
-              return ref.watch(unreadCountProvider(chat.chatId)).when(
-                data: (count) {
-                  if (count > 0) {
-                    return Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
-                      ),
-                      child: Text(
-                        count > 99 ? '99+' : count.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+    return Consumer(
+      builder: (context, ref, child) {
+        return ref.watch(currentUserProvider).when(
+              data: (currentUser) {
+                String displayName = chat.chatName;
+
+                // For one-on-one chats, show the other participant's name
+                if (chat.type == ChatType.oneOnOne && currentUser != null) {
+                  // We'll need to fetch the other user's name
+                  // For now, we'll use the stored chat name
+                  displayName = chat.chatName;
+                }
+
+                return ListTile(
+                  leading: CircleAvatar(
+                    radius: 25,
+                    backgroundImage: chat.chatImage != null
+                        ? CachedNetworkImageProvider(chat.chatImage!)
+                        : null,
+                    child: chat.chatImage == null
+                        ? Icon(
+                            chat.type == ChatType.group
+                                ? Icons.group
+                                : Icons.person,
+                            size: 28,
+                          )
+                        : null,
+                  ),
+                  title: Text(
+                    displayName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: chat.lastMessage != null
+                      ? Text(
+                          chat.lastMessage!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                          ),
+                        )
+                      : null,
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (chat.lastMessageTime != null)
+                        Text(
+                          timeago.format(chat.lastMessageTime!),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
+                      const SizedBox(height: 4),
+                      // Unread message indicator
+                      Consumer(
+                        builder: (context, ref, child) {
+                          return ref
+                              .watch(unreadCountProvider(chat.chatId))
+                              .when(
+                                data: (count) {
+                                  if (count > 0) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 20,
+                                        minHeight: 20,
+                                      ),
+                                      child: Text(
+                                        count > 99 ? '99+' : count.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, __) => const SizedBox.shrink(),
+                              );
+                        },
+                      ),
+                    ],
+                  ),
+                  onTap: () async {
+                    // Navigate to chat room
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChatRoomScreen(chat: chat),
                       ),
                     );
-                  }
-                  return const SizedBox.shrink();
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              );
-            },
-          ),
-        ],
-      ),
-      onTap: () {
-        // Navigate to chat room
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ChatRoomScreen(chat: chat),
-          ),
-        );
-      },
-      onLongPress: () {
-        _showChatOptions(context, ref, chat);
+                    // Refresh chat list when returning from chat room
+                    ref.invalidate(userChatsProvider);
+                  },
+                  onLongPress: () {
+                    _showChatOptions(context, ref, chat);
+                  },
+                );
+              },
+              loading: () => ListTile(
+                leading: CircleAvatar(
+                  radius: 25,
+                  backgroundImage: chat.chatImage != null
+                      ? CachedNetworkImageProvider(chat.chatImage!)
+                      : null,
+                  child: chat.chatImage == null
+                      ? Icon(
+                          chat.type == ChatType.group
+                              ? Icons.group
+                              : Icons.person,
+                          size: 28,
+                        )
+                      : null,
+                ),
+                title: Text(
+                  chat.chatName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: const Text('Loading...'),
+              ),
+              error: (_, __) => ListTile(
+                leading: CircleAvatar(
+                  radius: 25,
+                  backgroundImage: chat.chatImage != null
+                      ? CachedNetworkImageProvider(chat.chatImage!)
+                      : null,
+                  child: chat.chatImage == null
+                      ? Icon(
+                          chat.type == ChatType.group
+                              ? Icons.group
+                              : Icons.person,
+                          size: 28,
+                        )
+                      : null,
+                ),
+                title: Text(
+                  chat.chatName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: const Text('Error loading user data'),
+              ),
+            );
       },
     );
   }
@@ -367,7 +472,8 @@ class ChatListScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteChatDialog(BuildContext context, WidgetRef ref, ChatModel chat) {
+  void _showDeleteChatDialog(
+      BuildContext context, WidgetRef ref, ChatModel chat) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -384,7 +490,7 @@ class ChatListScreen extends ConsumerWidget {
               try {
                 final chatRepository = ref.read(chatRepositoryProvider);
                 await chatRepository.deleteChat(chat.chatId);
-                
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Chat deleted')),
@@ -411,7 +517,8 @@ class ChatListScreen extends ConsumerWidget {
     );
   }
 
-  void _showLeaveGroupDialog(BuildContext context, WidgetRef ref, ChatModel chat) {
+  void _showLeaveGroupDialog(
+      BuildContext context, WidgetRef ref, ChatModel chat) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -428,7 +535,7 @@ class ChatListScreen extends ConsumerWidget {
               try {
                 final chatRepository = ref.read(chatRepositoryProvider);
                 await chatRepository.deleteChat(chat.chatId);
-                
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Left group')),

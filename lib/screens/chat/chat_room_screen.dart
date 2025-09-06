@@ -22,19 +22,39 @@ class ChatRoomScreen extends ConsumerStatefulWidget {
   ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBindingObserver {
+class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   bool _showEmojiPicker = false;
   Timer? _typingTimer;
+  late AnimationController _typingAnimationController;
+  List<AnimationController> _dotAnimations = [];
+
+  // Reply functionality
+  MessageModel? _replyingToMessage;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
+    // Initialize typing animation
+    _typingAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Create dot animations
+    for (int i = 0; i < 3; i++) {
+      _dotAnimations.add(AnimationController(
+        duration: const Duration(milliseconds: 600),
+        vsync: this,
+      ));
+    }
+
     // Join chat room for real-time updates
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chatMethods = ref.read(chatMethodsProvider);
@@ -48,11 +68,15 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
     _messageController.dispose();
     _scrollController.dispose();
     _typingTimer?.cancel();
-    
+    _typingAnimationController.dispose();
+    for (var controller in _dotAnimations) {
+      controller.dispose();
+    }
+
     // Leave chat room
     final chatMethods = ref.read(chatMethodsProvider);
     chatMethods.leaveChatRoom(widget.chat.chatId);
-    
+
     super.dispose();
   }
 
@@ -60,7 +84,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     final authRepository = ref.read(authRepositoryProvider);
-    
+
     switch (state) {
       case AppLifecycleState.resumed:
         authRepository.updateOnlineStatus(true);
@@ -91,7 +115,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                   : null,
               child: widget.chat.chatImage == null
                   ? Icon(
-                      widget.chat.type == ChatType.group ? Icons.group : Icons.person,
+                      widget.chat.type == ChatType.group
+                          ? Icons.group
+                          : Icons.person,
                       size: 24,
                     )
                   : null,
@@ -137,7 +163,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
             onPressed: () {
               // TODO: Implement video call
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Video call feature coming soon!')),
+                const SnackBar(
+                    content: Text('Video call feature coming soon!')),
               );
             },
           ),
@@ -146,7 +173,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
             onPressed: () {
               // TODO: Implement voice call
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Voice call feature coming soon!')),
+                const SnackBar(
+                    content: Text('Voice call feature coming soon!')),
               );
             },
           ),
@@ -225,7 +253,12 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                     return currentUserAsync.when(
                       data: (currentUser) {
                         if (currentUser == null) return const SizedBox.shrink();
-                        return _buildMessageBubble(message, currentUser.uid);
+                        return GestureDetector(
+                          onLongPress: () {
+                            _showMessageOptions(context, message);
+                          },
+                          child: _buildMessageBubble(message, currentUser.uid),
+                        );
                       },
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
@@ -255,7 +288,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
-                      onPressed: () => ref.refresh(chatMessagesProvider(widget.chat.chatId)),
+                      onPressed: () =>
+                          ref.refresh(chatMessagesProvider(widget.chat.chatId)),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -266,6 +300,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
 
           // Typing indicator
           _buildTypingIndicator(),
+
+          // Reply indicator
+          _buildReplyIndicator(),
 
           // Message input area
           SafeArea(
@@ -320,7 +357,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                                 vertical: 8,
                               ),
                               suffixIcon: IconButton(
-                                icon: Icon(_showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions),
+                                icon: Icon(_showEmojiPicker
+                                    ? Icons.keyboard
+                                    : Icons.emoji_emotions),
                                 onPressed: () {
                                   setState(() {
                                     _showEmojiPicker = !_showEmojiPicker;
@@ -345,8 +384,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                       child: EmojiPicker(
                         onEmojiSelected: (category, emoji) {
                           _messageController.text += emoji.emoji;
-                          _messageController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _messageController.text.length),
+                          _messageController.selection =
+                              TextSelection.fromPosition(
+                            TextPosition(
+                                offset: _messageController.text.length),
                           );
                         },
                       ),
@@ -367,7 +408,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isMe && widget.chat.type == ChatType.group)
             CircleAvatar(
@@ -379,7 +421,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
                   ? const Icon(Icons.person, size: 20)
                   : null,
             ),
-          if (!isMe && widget.chat.type == ChatType.group) const SizedBox(width: 8),
+          if (!isMe && widget.chat.type == ChatType.group)
+            const SizedBox(width: 8),
           Container(
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.7,
@@ -392,6 +435,48 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Reply context
+                if (message.replyToMessageId != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border(
+                        left: BorderSide(
+                          color: isMe
+                              ? Colors.white
+                              : Theme.of(context).primaryColor,
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Replying to message',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isMe ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tap to see original message',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isMe ? Colors.white70 : Colors.grey[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (!isMe && widget.chat.type == ChatType.group)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -466,38 +551,131 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
     return Consumer(
       builder: (context, ref, child) {
         return ref.watch(typingIndicatorProvider).when(
-          data: (chatId) {
-            if (chatId == widget.chat.chatId) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+              data: (chatId) {
+                if (chatId == widget.chat.chatId) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        _buildTypingDots(),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Someone is typing...',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Someone is typing...',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
-        );
+                  );
+                } else {
+                  // Stop animation when typing stops
+                  if (_typingAnimationController.isAnimating) {
+                    _typingAnimationController.stop();
+                    for (var controller in _dotAnimations) {
+                      controller.stop();
+                    }
+                  }
+                }
+                return const SizedBox.shrink();
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            );
       },
     );
   }
 
+  Widget _buildTypingDots() {
+    return SizedBox(
+      width: 30,
+      height: 20,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(3, (index) {
+          return AnimatedBuilder(
+            animation: _dotAnimations[index],
+            builder: (context, child) {
+              return Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  shape: BoxShape.circle,
+                ),
+                transform: Matrix4.identity()
+                  ..scale(0.5 + (_dotAnimations[index].value * 0.5)),
+              );
+            },
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildReplyIndicator() {
+    if (_replyingToMessage == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        border: Border(
+          top: BorderSide(color: Colors.grey[300]!),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Replying to ${_replyingToMessage!.senderName}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _replyingToMessage!.content,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: () {
+              setState(() {
+                _replyingToMessage = null;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+//status was set to 1 update it
   IconData _getStatusIcon(MessageStatus status) {
     switch (status) {
       case MessageStatus.sending:
@@ -530,10 +708,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
 
   void _onTyping(String text) {
     final chatMethods = ref.read(chatMethodsProvider);
-    
+
     if (text.isNotEmpty) {
       chatMethods.startTyping(widget.chat.chatId);
-      
+
       _typingTimer?.cancel();
       _typingTimer = Timer(const Duration(seconds: 2), () {
         chatMethods.stopTyping(widget.chat.chatId);
@@ -548,10 +726,22 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    final chatMethods = ref.read(chatMethodsProvider);
-    await chatMethods.sendTextMessage(widget.chat.chatId, text);
-    
+    // Clear text immediately and stop typing
     _messageController.clear();
+    final chatMethods = ref.read(chatMethodsProvider);
+    chatMethods.stopTyping(widget.chat.chatId);
+    _typingTimer?.cancel();
+
+    // Send message with reply context
+    final replyToMessageId = _replyingToMessage?.messageId;
+    await chatMethods.sendTextMessage(widget.chat.chatId, text,
+        replyToMessageId: replyToMessageId);
+
+    // Clear reply context
+    setState(() {
+      _replyingToMessage = null;
+    });
+
     _scrollToBottom();
   }
 
@@ -608,7 +798,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
       final XFile? image = await _imagePicker.pickImage(source: source);
       if (image != null) {
         final chatMethods = ref.read(chatMethodsProvider);
-        await chatMethods.sendImageMessage(widget.chat.chatId, File(image.path));
+        await chatMethods.sendImageMessage(
+            widget.chat.chatId, File(image.path));
         _scrollToBottom();
       }
     } catch (e) {
@@ -635,7 +826,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Chat'),
-        content: const Text('Are you sure you want to clear this chat? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to clear this chat? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -646,7 +838,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
               Navigator.pop(context);
               // TODO: Implement clear chat functionality
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Clear chat feature coming soon!')),
+                const SnackBar(
+                    content: Text('Clear chat feature coming soon!')),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -655,6 +848,55 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> with WidgetsBin
             child: const Text('Clear'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMessageOptions(BuildContext context, MessageModel message) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.reply),
+              title: const Text('Reply'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _replyingToMessage = message;
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Implement copy functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Copy feature coming soon!')),
+                );
+              },
+            ),
+            if (message.senderId == ref.read(currentUserProvider).value?.uid)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Implement delete message functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Delete message feature coming soon!')),
+                  );
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

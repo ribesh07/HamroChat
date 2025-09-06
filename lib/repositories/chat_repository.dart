@@ -19,17 +19,17 @@ class ChatRepository {
 
   // Get user's chats stream
   Stream<List<ChatModel>> getUserChats() {
-    if (currentUserId == null) return Stream.value([]);
-    
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return Stream.value([]);
+
     return _firestore
         .collection('chats')
-        .where('participants', arrayContains: currentUserId)
+        .where('participants', arrayContains: userId)
         .where('isActive', isEqualTo: true)
         .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatModel.fromMap(doc.data()))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => ChatModel.fromMap(doc.data())).toList());
   }
 
   // Get messages for a chat
@@ -47,7 +47,8 @@ class ChatRepository {
   }
 
   // Create or get one-on-one chat
-  Future<ChatModel> createOrGetOneOnOneChat(String otherUserId, UserModel otherUser) async {
+  Future<ChatModel> createOrGetOneOnOneChat(
+      String otherUserId, UserModel otherUser) async {
     if (currentUserId == null) throw Exception('User not authenticated');
 
     // Check if chat already exists
@@ -67,7 +68,7 @@ class ChatRepository {
     // Create new chat
     final chatId = _uuid.v4();
     final now = DateTime.now();
-    
+
     final newChat = ChatModel(
       chatId: chatId,
       chatName: otherUser.displayName,
@@ -82,10 +83,7 @@ class ChatRepository {
       isActive: true,
     );
 
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .set(newChat.toMap());
+    await _firestore.collection('chats').doc(chatId).set(newChat.toMap());
 
     return newChat;
   }
@@ -130,23 +128,22 @@ class ChatRepository {
       description: description,
     );
 
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .set(newChat.toMap());
+    await _firestore.collection('chats').doc(chatId).set(newChat.toMap());
 
     return newChat;
   }
 
   // Send text message
-  Future<void> sendTextMessage(String chatId, String content) async {
+  Future<void> sendTextMessage(String chatId, String content,
+      {String? replyToMessageId}) async {
     if (currentUserId == null) throw Exception('User not authenticated');
 
     final messageId = _uuid.v4();
     final now = DateTime.now();
 
     // Get current user info
-    final userDoc = await _firestore.collection('users').doc(currentUserId).get();
+    final userDoc =
+        await _firestore.collection('users').doc(currentUserId).get();
     final userData = userDoc.data()!;
 
     final message = MessageModel(
@@ -160,6 +157,7 @@ class ChatRepository {
       status: MessageStatus.sending,
       timestamp: now,
       readBy: [],
+      replyToMessageId: replyToMessageId,
     );
 
     // Add message to Firestore
@@ -185,7 +183,8 @@ class ChatRepository {
     final now = DateTime.now();
 
     // Get current user info
-    final userDoc = await _firestore.collection('users').doc(currentUserId).get();
+    final userDoc =
+        await _firestore.collection('users').doc(currentUserId).get();
     final userData = userDoc.data()!;
 
     // Create initial message with sending status
@@ -213,7 +212,8 @@ class ChatRepository {
 
     try {
       // Upload image to Firebase Storage
-      final imageUrl = await _uploadFile(imageFile, 'chat_images/$chatId/$messageId');
+      final imageUrl =
+          await _uploadFile(imageFile, 'chat_images/$chatId/$messageId');
 
       // Update message with image URL
       final updatedMessage = message.copyWith(
@@ -245,18 +245,19 @@ class ChatRepository {
   }
 
   // Mark messages as read
-  Future<void> markMessagesAsRead(String chatId, List<String> messageIds) async {
+  Future<void> markMessagesAsRead(
+      String chatId, List<String> messageIds) async {
     if (currentUserId == null) return;
 
     final batch = _firestore.batch();
-    
+
     for (String messageId in messageIds) {
       final messageRef = _firestore
           .collection('chats')
           .doc(chatId)
           .collection('messages')
           .doc(messageId);
-      
+
       batch.update(messageRef, {
         'readBy': FieldValue.arrayUnion([currentUserId]),
         'readAt': DateTime.now().millisecondsSinceEpoch,
@@ -343,7 +344,7 @@ class ChatRepository {
     final chatDoc = await _firestore.collection('chats').doc(chatId).get();
     if (chatDoc.exists) {
       final chat = ChatModel.fromMap(chatDoc.data()!);
-      
+
       if (chat.type == ChatType.oneOnOne) {
         // Mark as inactive for current user (you might implement this differently)
         await _firestore.collection('chats').doc(chatId).update({
@@ -365,7 +366,8 @@ class ChatRepository {
   }
 
   // Helper method to update chat's last message
-  Future<void> _updateChatLastMessage(String chatId, String lastMessage, DateTime timestamp) async {
+  Future<void> _updateChatLastMessage(
+      String chatId, String lastMessage, DateTime timestamp) async {
     await _firestore.collection('chats').doc(chatId).update({
       'lastMessage': lastMessage,
       'lastMessageTime': timestamp.millisecondsSinceEpoch,
